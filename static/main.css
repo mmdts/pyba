@@ -1,0 +1,132 @@
+* { box-sizing: border-box; }
+
+body {
+    color: #faebd7;
+    background-color: #faebd7;
+    font-family: consolas, monospace;
+    margin: 0;
+    padding: 0;
+}
+
+canvas {
+    -webkit-font-smoothing : none;
+}
+
+div {
+    position: relative;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+body > div {
+    background-color: #3f3529;
+    padding: 10px;
+    width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body > div:not(:last-child) {
+    border-bottom: 2px solid #faebd7;
+}
+
+form, .forms div {
+    display: inline-block;
+}
+
+#room_id_rw {
+    width: 300px;
+}
+
+#wave_number {
+    width: 50px;
+}
+
+#create_button {
+    width: 160px;
+}
+
+#copy_button {
+    width: 142px;
+}
+
+#connect_button {
+    width: 121px;
+}
+
+.spacer {
+    width: 80px;
+}
+
+#game {
+    cursor: url("interface/cursor.cur"), default;
+    user-select: none;
+}
+
+#info_text {
+    text-align: left;
+    padding-left: 12px;
+    white-space: pre-wrap;
+}
+
+/* ::Before Icon Logic */
+.stat::before {
+    content: "...";
+    padding-right: 5px;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: transparent;
+}
+
+/* ::Before Icons */
+#number::before { background-image: url("interface/wave.png"); }
+#tick::before { background-image: url("interface/tick.png"); }
+#tick::before { background-image: url("interface/tick.png"); }
+#sent::before { background-image: url("interface/sent.png"); }
+#received::before { background-image: url("interface/received.png"); }
+#required::before { background-image: url("interface/required.png"); }
+#trap::before { background-image: url("gameobjects/trap.png"); }
+
+/* New Containers */
+.game {
+    display: flex;
+    flex-direction: row;
+}
+.game > div {
+    margin: 20px;
+}
+.side {
+    display: flex;
+    flex-direction: column;
+}
+#wave {
+    margin-bottom: 20px;
+}
+
+.container canvas:not(:first-child) {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.inventory.container {
+    margin-top: auto;
+    width: 202px;
+    height: 274px;
+    padding: 10px 17px;
+    border: 2px solid #faebd7;
+    background-color: #544838;
+}
+
+.stat {
+    text-align: left;
+    height: 24px;
+}
+
+#right_click {
+    pointer-events: none;
+    overflow: visible;
+    z-index: 5;
+    left: -70px;
+}

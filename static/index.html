@@ -1,0 +1,75 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <title>Barbarian Assault</title>
+    <meta name="description" content="The mmdts Big Barbarian Assault Project">
+    <meta name="author" content="mmdts">
+    <link rel="stylesheet" href="main.css?v=0">
+</head>
+
+<body>
+    <div class="forms">
+        <form autocomplete="off">
+            <select id="role">
+                <option value="d" selected>Defender</option>
+    <!--                <option value="h">Healer</option>-->
+    <!--                <option value="c">Collector</option>-->
+    <!--                <option value="a">Main Attacker</option>-->
+    <!--                <option value="s">Second Attacker</option>-->
+                <option value="_">Spectator</option>
+            </select>
+        </form>
+        <div class="spacer"></div>
+        <form autocomplete="off" id="create" action="/">
+            <input type="hidden" id="room_id_ro" placeholder="Room ID" required disabled>
+            <button type="submit" id="create_button">Start New Room</button>
+        </form>
+        <button id="copy_button">Copy Invite ID</button>
+        <div class="spacer"></div>
+        <form autocomplete="off" id="connect" action="/">
+            <input type="text" id="room_id_rw" value="" placeholder="Paste an invite ID to join someone's room.">
+            <button type="submit" id="connect_button">Join Room</button>
+        </form>
+    </div>
+    <div class="forms">
+        <form autocomplete="on" id="wave_select" action="/">
+            <label for="wave_number">Wave: </label><input type="number" id="wave_number" value="1" min="1" max="9" required>
+            <input type="text" id="runner_movements" value="" placeholder="Runner movements. Ex: ES-S" title="Case insensitive.">
+            <button type="submit" id="wave_button">Start Wave</button>
+        </form>
+        <div class="spacer"></div>
+        <div class="spacer"></div>
+        <div class="spacer"></div>
+        <form autocomplete="off" title="Requires you to press the step button to move forward.">
+            <input type="checkbox" id="wave_step_checkbox"><label for="wave_step_checkbox"> Step Through Ticks</label>
+        </form>
+        <button id="wave_step_button">Step</button>
+    </div>
+    <div class="game">
+        <div class="container">
+            <canvas id="map"></canvas>
+            <canvas id="map_elements"></canvas>
+            <canvas id="right_click"></canvas>
+        </div>
+        <div class="side">
+            <div id="wave">
+                <div class="stat" id="number"></div>
+                <div class="stat" id="tick"></div>
+                <div class="stat" id="trap"></div>
+            </div>
+            <div id="calls">
+                <div class="stat" id="sent"></div>
+                <div class="stat" id="received"></div>
+                <div class="stat" id="required"></div>
+            </div>
+            <div class="container inventory">
+                <canvas id="inventory"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="info_text"></div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

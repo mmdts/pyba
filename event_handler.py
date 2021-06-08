@@ -99,6 +99,8 @@ class EventHandler:
             return False
 
         if action == "new_wave" and len(args) == 2:
+            room.blocking_action = True  # Starting a new wave blocks actions for a tick.
+            room.player_action_queue.clear()
             room.game.start_new_wave(args[0] - 1, Terrain.parse_runner_movements(args[1]))
             return True
 
@@ -165,7 +167,9 @@ class EventHandler:
         if EventHandler.handle_room_event(action, args, room, client):
             return True
 
-        if EventHandler.handle_role_player_event(action, args, room, client):
-            return True
+        if not room.blocking_action:
+            # We will not take any action if the wave has been reset on the previous tick
+            if EventHandler.handle_role_player_event(action, args, room, client):
+                return True
 
         return False

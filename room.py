@@ -29,6 +29,7 @@ class Room:
         self.game: Game = Game()
         self.player_action_queue: List[Tuple[Callable, Tuple, Dict]] = []
         self.game.set_new_players({})  # TODO: No AI. Fix this when AI is implemented.
+        self.blocking_action = False  # Flips to true on the first tick of new_wave action.
         self.mode: int = Room.DELAY
 
     def __call__(self) -> None:
@@ -61,9 +62,12 @@ class Room:
         assert self.is_alive, "Room died. Please start a new one."
         self.exhaust_queue()
         if self.game.wave is not None:
-            if not self.game():  # The game call happens here!
+            if self.game():  # The game call happens here!
+                self.blocking_action = False  # A tick passed, now actions can happen again.
+            else:
                 self.game.wave = None
-
+                self.blocking_action = True
+                self.player_action_queue.clear()
             # ANY CUSTOM PLAYER CODE GOES HERE!
 
             self.transmit()

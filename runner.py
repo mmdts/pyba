@@ -82,10 +82,8 @@ class Runner(Npc):
         # TODO: DEBUG Confirm blughing is working as expected.
 
         # TODO: SESSION 1 WITH AKRAELT.
-        # TODO: BUILD Right click examine mobs
         # TODO: FIX runner hard crashing on e-s movement gets stuck.
         # TODO: FIX runner eating then walking 1 step south dies a tick later.
-        # TODO: FIX food that remains over after reclicking wave start right after dropping so next tick is in a new wave.
         # TODO: FIX when runners want to path diagonally and its blocked, they dont move east/west like they're supposed to.
 
         return

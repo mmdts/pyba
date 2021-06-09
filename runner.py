@@ -11,7 +11,7 @@ from dropped_item import Food
 # TODO: BUILD blughing.
 class Runner(Npc):
     HITPOINTS: List[int] = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
-    SPAWNS: List[Tuple[int, int]] = [(2, 0), (2, 1), (2, 2), (3, 1), (4, 1), (4, 2), (5, 1), (5, 2), (6, 2), (5, 1)]
+    SPAWNS: List[Tuple[int, int]] = [(2, 0), (2, 1), (2, 2), (3, 1), (4, 1), (4, 2), (5, 1), (5, 2), (5, 4), (5, 1)]
 
     SNIFF_DISTANCE: int = 5  # Hardcoded, because I'm assuming everyone is level 5.
     TILES_PER_RANDOM_WALK = 5

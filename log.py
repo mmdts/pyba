@@ -3,8 +3,8 @@ from colorama import init, Fore, Style
 
 init()
 
-DEBUG: bool = True
-GAME_PRINT: bool = True
+DEBUG: bool = False
+GAME_PRINT: bool = False
 J = Style.RESET_ALL
 R = Fore.RED
 Y = Fore.YELLOW

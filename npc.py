@@ -122,20 +122,26 @@ class Npc(Unit):
         #
         # Keep in mind we can only do this because Npcs won't try to run up cannon, and therefore,
         # the wall processing part (which is why recursion was introduced into diagonal can_single_step)
-        # won't be necessary
-        new_tile = start
+        # won't be necessary.
         single_step_x = relative.single_step_x()
         single_step_y = relative.single_step_y()
 
+        if start.can_npc_single_step(start + single_step_y + single_step_x):
+            # If we can step diagonally, or the tile is horizontal, we will.
+            return start + single_step_x + single_step_y
+
+        # If we can't step to the tile directly, let's try to step in x alone.
         if start.can_npc_single_step(start + single_step_x):
             # Unlike with the diagonal case this taxicab can_npc_single_step will never recurse.
-            new_tile += single_step_x
+            return start + single_step_x
 
+        # Then in y alone.
         if start.can_npc_single_step(start + single_step_y):
             # Unlike with the diagonal case this taxicab can_npc_single_step will never recurse.
-            new_tile += single_step_y
+            return start + single_step_y
 
-        return new_tile
+        # We're stuck.
+        return start
 
     def follow(self, target: Locatable, on_reach: Tuple[Callable, Tuple, Dict] = None) -> bool:
         assert self.can_see(target) or self.followee == target, \

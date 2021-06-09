@@ -270,7 +270,7 @@ class C:  # Tile, Location, Displacement
 
         return rv
 
-    def can_single_step(self, destination: C) -> bool:
+    def can_single_step(self, destination: C, call_npc_function: bool = False) -> bool:
         # We can only single step to a square that's king-movable (one of the eight squares around us).
         if self.chebyshev_to(destination) > 1:
             return False
@@ -298,9 +298,11 @@ class C:  # Tile, Location, Displacement
         x_tile = C(self.x + move.x, self.y)
         y_tile = C(self.x, self.y + move.y)
 
+        recursion_function: Callable = call_npc_function and self.can_npc_single_step or self.can_single_step
+
         if self.chebyshev_to(destination) == 1 and \
-           self.can_single_step(x_tile) and \
-           self.can_single_step(y_tile) and \
+           recursion_function(x_tile) and \
+           recursion_function(y_tile) and \
            x_tile.can_single_step(destination) and \
            y_tile.can_single_step(destination):
             return True
@@ -317,7 +319,7 @@ class C:  # Tile, Location, Displacement
             # Note that a player stepping you unblocks the tile (Runescape mechanism).
             return False
 
-        return self.can_single_step(destination)
+        return self.can_single_step(destination, call_npc_function=True)
 
     def can_single_see(self, destination: C) -> bool:
         # Very similar in mechanics for C.can_single_step, but for seeing.

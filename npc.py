@@ -27,7 +27,7 @@ class Npc(Unit):
 
         self.cycle: int = 0
         self.despawn_i: int = self.DESPAWN_TICKS
-        self.state: int = self.ALIVE
+        self.state: int = Npc.ALIVE
         self.wave_number: int = wave_number
         self.hitpoints: int = self.HITPOINTS[self.wave_number]
 
@@ -36,7 +36,7 @@ class Npc(Unit):
         self.cycle %= self.CYCLE_COUNT
 
         if self.hitpoints == 0:  # TODO: BUILD Care for blue eggs here - in the far future.
-            self.state = self.DEAD
+            self.state = Npc.DEAD
 
         if self.is_alive():
             if self.followee is not None:
@@ -95,7 +95,7 @@ class Npc(Unit):
     """Boolean Functions"""
 
     def is_alive(self) -> bool:
-        return self.state == self.ALIVE
+        return self.state == Npc.ALIVE
 
     def is_followable(self) -> bool:
         return self.is_alive() and super().is_followable()

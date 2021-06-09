@@ -52,7 +52,7 @@ class Runner(Npc):
         if self.has_chomped:
             self.urgh_raa_i -= 1
             if self.urgh_raa_i == 0:
-                self.state = self.DEAD
+                self.state = Npc.DEAD
                 self.print(self.DEATH_MESSAGE)
             return
 
@@ -63,7 +63,7 @@ class Runner(Npc):
             # Since Penance decrements the amount of reserve runners when spawning them,
             # we need to re-add this escaped runner back to reserves by incrementing that count.
             self.game.wave.penance.spawns["d"][1] += 1
-            self.state = self.DEAD
+            self.state = Npc.DEAD
             return
 
         if self.cycle == 1:

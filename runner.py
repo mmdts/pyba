@@ -178,7 +178,7 @@ class Runner(Npc):
             # death sequence (passing False to Penance.__call__ at the very end).
             for trap in traps:
                 if self.location.chebyshev_to(trap.location) <= 1 and trap.charges > 0:
-                    self.state = self.DEAD
+                    self.has_chomped = True
         else:
             # We ate a wrong food.
             self.print(Runner.INCORRECT_EAT_MESSAGE)

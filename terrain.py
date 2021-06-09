@@ -150,7 +150,7 @@ class C:  # Tile, Location, Displacement
         raise KeyError(f"C[{key}] cannot be set because it does not exist.")
 
     def __str__(self) -> str:
-        return (self.x, self.y, Terrain.letter_at(self)).__str__()
+        return f"({self.x:>2}, {self.y:>2}, {Terrain.letter_at(self)})"
 
     def __hash__(self) -> int:
         return hash((self.x, self.y))

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from random import random
 from typing import List, Callable, Tuple, Dict
 
-from log import game_print
+from log import game_print, debug
 from terrain import Locatable, Terrain, C, Inspectable, E, D
 from unit import Unit
 
@@ -32,7 +32,7 @@ class Npc(Unit):
         self.hitpoints: int = self.HITPOINTS[self.wave_number]
 
     def __call__(self):
-        self.cycle += 1
+        self.cycle += 1  # Cycle starts at 1 and ends at 0 after 9.
         self.cycle %= self.CYCLE_COUNT
 
         if self.hitpoints == 0:  # TODO: BUILD Care for blue eggs here - in the far future.
@@ -53,13 +53,14 @@ class Npc(Unit):
     def default_name(self) -> str:
         return self.__class__.__name__
 
+    def str_info(self):
+        return f"{self.name}({self.game.tick}, {self.cycle})@{str(self.location)}"
+
     def print(self, *args, **kwargs):
-        game_print("Penance.print", f"[{self.name.ljust(11)}]{str(self.location)}"
-                   f"({Terrain.tick_to_string(self.game.wave.relative_tick)})::", *args, **kwargs)
+        game_print("Penance.print", f"{self.str_info()}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
-                "PENANCE::", f"[{self.name.ljust(11)}]{str(self.location)}"
-                             f"({Terrain.tick_to_string(self.game.wave.relative_tick)})::", *args
+                "PENANCE::", f"{self.str_info()}", *args
             )])
         )
 

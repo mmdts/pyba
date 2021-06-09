@@ -8,6 +8,7 @@ from npc import Npc
 from dropped_item import Food
 
 
+# TODO: BUILD blughing.
 class Runner(Npc):
     HITPOINTS: List[int] = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
     SPAWNS: List[Tuple[int, int]] = [(2, 0), (2, 1), (2, 2), (3, 1), (4, 1), (4, 2), (5, 1), (5, 2), (6, 2), (5, 1)]
@@ -27,6 +28,7 @@ class Runner(Npc):
 
     # Maps a cycle to the target state at which the runner tries to target on that cycle.
     CYCLE_MAP: List[int] = [None, None, 2, 3, 1, 2, 3]
+    TARGET_STATE_MAP: List[List[int]] = [[], [4], [2, 5], [3, 6]]
 
     """Basic Functions"""
 
@@ -43,11 +45,11 @@ class Runner(Npc):
 
         self.followee: Optional[Food] = None
 
-    def str_info(self):
+    def str_info(self) -> str:
         return f"{self.name}({self.game.tick}, {self.cycle}, {self.target_state})@{str(self.location)}"
 
     """Tick Functions"""
-    def do_cycle(self):
+    def do_cycle(self) -> None:
         # Runner do_cycle does not call self.unit_call because runners do not path normally or attack.
         if self.has_chomped:
             self.urgh_raa_i -= 1
@@ -59,7 +61,6 @@ class Runner(Npc):
         if self.has_escaped:
             # Escape takes 1 tick to set dead here, then 2 ticks to despawn in Npc.tick_despawn.
             # TODO: CHECK escape duration.
-            #
             # Since Penance decrements the amount of reserve runners when spawning them,
             # we need to re-add this escaped runner back to reserves by incrementing that count.
             self.game.wave.penance.spawns["d"][1] += 1
@@ -84,15 +85,10 @@ class Runner(Npc):
             # Start a predecided move or a random move.
             self.target = self.walk()
 
-        # TODO: DEBUG Confirm blughing is working as expected.
         if self.cycle == 1 and self.blugh_i == 0 and self.followee is None:
             debug("Runner.do_cycle", "The target food disappeared and this runner will stop movement.")
             self.stop_movement()
 
-        # TODO: SESSION 1 WITH AKRAELT.
-        # TODO: FIX runner hard crashing on e-s movement gets stuck.
-        # TODO: FIX runner eating then walking 1 step south dies a tick later.
-        # TODO: FIX when runners want to path diagonally and its blocked, they dont move east/west like they're supposed to.
         if not followee_eaten_or_picked:
             self.step()
 
@@ -106,7 +102,6 @@ class Runner(Npc):
                 if self.location.chebyshev_to(trap.location) <= 1 and trap.charges > 0:
                     trap.charges -= 1  # We don't need to check for chomp because cannoning a runner beside
         return rv                      # a trap reduces charges.
-
 
     def tick_target(self, food: List[Food]) -> None:
         if self.target_state != Runner.CYCLE_MAP[self.cycle]:
@@ -133,13 +128,10 @@ class Runner(Npc):
                     debug("Runner.tick_target",
                           f"{self.str_info()} switched target from {self.followee} to {first_food}.")
 
-
-    def step(self) -> None:
-        # TODO: REFACTOR. Remove his entire overload is here only to debug.
-        debug("Runner.step",
-              f"{self.str_info()} stepping with queue: {Terrain.queue_info(self.pathing_queue)}.")
-
-        return super().step()
+                    self.target_state = 0
+                    # Follow just sets self.target, Npc.step is where the pathing and movement is at.
+                    self.follow(first_food)
+                    return
 
     def tick_eat(self, food: List[Food], traps: List[Trap]) -> bool:
         # Returns False if no action concerning the food has been made: We are still following or random-walking.
@@ -153,8 +145,24 @@ class Runner(Npc):
 
         if self.followee not in Terrain.filter_food_by_zone(food, self.followee.location.get_runner_zone()):
             # The food got picked up. We only reset the followee but don't stop movement.
+
+            # This part is debugging code
             debug("Runner.tick_eat",
                   f"{self.str_info()} tried to eat {self.followee} but it got picked/eaten.")
+
+            hendi_success = self.cycle in Runner.TARGET_STATE_MAP[self.target_state]
+            soft_crash = self.cycle in [7, 8, 9, 0]
+
+            if hendi_success:
+                debug("Runner.tick_eat.c", f"{self.str_info()} successfully got hendied.")
+
+            if soft_crash:
+                debug("Runner.tick_eat.c", f"{self.str_info()} slow multied / soft crashed.")
+
+            if not soft_crash and not hendi_success:
+                debug("Runner.tick_eat.c", f"{self.str_info()} hard crashed.")
+            # This is the end of the debugging code part.
+
             self.followee = None
             self.followee_last_found = None
             self.target_state = 0

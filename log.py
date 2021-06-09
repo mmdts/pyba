@@ -7,6 +7,7 @@ DEBUG: bool = True
 GAME_PRINT: bool = True
 J = Style.RESET_ALL
 R = Fore.RED
+Y = Fore.YELLOW
 B = Fore.BLUE
 G = Fore.GREEN
 C = Fore.CYAN
@@ -21,8 +22,8 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Wave.__call__": None,
 
     "Defender.pick_item": LC,
-    "Defender.click_repair_trap": C,
-    "Defender.repair_trap": LC,
+    # "Defender.click_repair_trap": C,
+    # "Defender.repair_trap": LC,
 
     # "Player.__call__": G,  # The busy wait.
     "Player.path": G,
@@ -30,8 +31,10 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "Player.single_step": LG,
     "Unit.exhaust_pmac": LG,
 
+    "Runner.do_cycle": C,
     "Runner.step": LC,
     "Runner.tick_eat": C,
+    "Runner.tick_eat.c": B,
     "Runner.tick_target": C,
     "Runner.walk": LC,
 }
@@ -40,11 +43,10 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
 ALLOWED_GAME_PRINT_NAMESPACES: Dict[str, Optional[int]] = {
     # "Game.print_map": None,
     # "Game.print_runners": None,
-    # "Penance.print": None,
+    "Penance.print": Y,
     # "Wave.print": None,
     # "Terrain.print": None,
 }
-
 
 def debug(namespace: str, *args, **kwargs) -> None:
     if not DEBUG:

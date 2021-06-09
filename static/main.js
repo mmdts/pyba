@@ -183,7 +183,7 @@ function g(key) {
 }
 
 function initializeSide () {
-        $sideWaveNumber.text(`Wave: ${window.iface?.game?.wave?.number ?? ""}`);
+        $sideWaveNumber.text(`Wave: ${+(window.iface?.game?.wave?.number ?? -1) + 1}`);
         $sideWaveTick.text(`Tick: ${window.iface?.game?.wave?.relative_tick ?? ""}`);
         $sideTrap.text(`Trap Charges: ${window.iface?.game?.wave?.game_objects?.trap?.charges ?? ""}`);
         $sideCallsReceived.text(`${g("received_call")} (Correct: ${g("correct_call")})`);

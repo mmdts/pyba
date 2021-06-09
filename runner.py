@@ -66,25 +66,35 @@ class Runner(Npc):
             self.state = Npc.DEAD
             return
 
-        if self.cycle == 1:
-            self.tick_1(self.game.wave.dropped_food, self.game.wave.game_objects.traps)
+        if self.cycle in [1, 6]:
+            self.tick_escape()
+            if self.blugh_i > 0:
+                self.blugh_i -= 1
 
-        if self.cycle in [2, 3, 4, 5]:
+        if self.cycle == 1 and self.blugh_i == 0:
+            self.target_state = self.target_state == Runner.TARGET_STATE_COUNT and 1 or self.target_state + 1
+
+        # The runner will never retarget on 1, 7, 8, 9, 0.
+        if self.cycle in [2, 3, 4, 5, 6]:
             self.tick_target(self.game.wave.dropped_food)
 
-        if self.cycle == 6:
-            self.tick_6(self.game.wave.dropped_food, self.game.wave.game_objects.traps)
+        followee_eaten_or_picked = self.tick_eat(self.game.wave.dropped_food, self.game.wave.game_objects.traps)
 
-        # The runner will never retarget on 7, 8, 9, 0.
-        if self.cycle in [2, 3, 4, 5, 7, 8, 9, 0]:
-            self.tick_eat(self.game.wave.dropped_food, self.game.wave.game_objects.traps)
+        if self.cycle == 6 and self.followee is None and self.blugh_i == 0 and not self.has_chomped and self.is_alive():
+            # Start a predecided move or a random move.
+            self.target = self.walk()
 
         # TODO: DEBUG Confirm blughing is working as expected.
+        if self.cycle == 1 and self.blugh_i == 0 and self.followee is None:
+            debug("Runner.do_cycle", "The target food disappeared and this runner will stop movement.")
+            self.stop_movement()
 
         # TODO: SESSION 1 WITH AKRAELT.
         # TODO: FIX runner hard crashing on e-s movement gets stuck.
         # TODO: FIX runner eating then walking 1 step south dies a tick later.
         # TODO: FIX when runners want to path diagonally and its blocked, they dont move east/west like they're supposed to.
+        if not followee_eaten_or_picked:
+            self.step()
 
         return
 
@@ -97,58 +107,32 @@ class Runner(Npc):
                     trap.charges -= 1  # We don't need to check for chomp because cannoning a runner beside
         return rv                      # a trap reduces charges.
 
-    def tick_1(self, food: List[Food], traps: List[Trap]) -> None:
-        self.tick_escape()
-        if self.blugh_i == 0:
-            self.target_state += 1
-            if self.target_state > Runner.TARGET_STATE_COUNT:
-                self.target_state = 1
-        else:
-            self.blugh_i -= 1
-
-        self.tick_eat(food, traps)
-
-        if self.blugh_i == 0 and self.followee is None:
-            self.stop_movement()
-
-    def tick_6(self, food: List[Food], traps: List[Trap]) -> None:
-        self.tick_escape()
-        if self.blugh_i > 0:
-            self.blugh_i -= 1
-
-        self.tick_target(food)
-        self.tick_eat(food, traps)
-
-        if self.followee is None and self.blugh_i == 0:
-            # Start a special move or a random move.
-            self.target = self.walk()
 
     def tick_target(self, food: List[Food]) -> None:
-        if self.target_state == self.CYCLE_MAP[self.cycle]:
-            zone = self.location.get_runner_zone()
-            # The runner scans the map zones in order, preferring east size over west size, then north over south.
-            # Map zones are 8x8 areas of the map starting at a certain offset.
-            scan_order = [D.NE, D.E, D.SE, D.N, D.X, D.S, D.NW, D.W, D.SW]
-            first_food = None
-            for zone_delta in scan_order:
-                scan_zone = zone + zone_delta
-                if scan_zone != scan_zone.clamp(D.X, E.RUNNER_ZONE_CLAMP_SQ):
+        if self.target_state != Runner.CYCLE_MAP[self.cycle]:
+            return
+
+        # The runner scans the map zones in order, preferring east size over west size, then north over south.
+        # Map zones are 8x8 areas of the map starting at a certain offset.
+        zone = self.location.get_runner_zone()
+        scan_order = [D.NE, D.E, D.SE, D.N, D.X, D.S, D.NW, D.W, D.SW]
+        first_food = None
+        for zone_delta in scan_order:
+            scan_zone = zone + zone_delta
+            if scan_zone != scan_zone.clamp(D.X, E.RUNNER_ZONE_CLAMP_SQ):
+                continue
+
+            # Within the first zone (in order of preference) in which food it has a line-of-sight over is found,
+            # the runner eats the newest-placed food  it has a line-of-sight over.
+            for o in reversed(Terrain.filter_food_by_zone(food, scan_zone)):  # Reversed so newest first.
+                if not self.can_see(o):
                     continue
+                if first_food is None:
+                    first_food = o
+                if self.location.chebyshev_to(o.location) <= self.SNIFF_DISTANCE:
+                    debug("Runner.tick_target",
+                          f"{self.str_info()} switched target from {self.followee} to {first_food}.")
 
-                # Within the first zone (in order of preference) in which food it has a line-of-sight over is found,
-                # the runner eats the newest-placed food  it has a line-of-sight over.
-                for o in reversed(Terrain.filter_food_by_zone(food, scan_zone)):  # Reversed so newest first.
-                    if not self.can_see(o):
-                        continue
-                    if first_food is None:
-                        first_food = o
-                    if self.location.chebyshev_to(o.location) <= self.SNIFF_DISTANCE:
-                        debug("Runner.tick_target",
-                              f"{self.str_info()} switched target from {self.followee} to {first_food}.")
-
-                        self.target_state = 0
-                        self.follow(first_food)
-                        return
 
     def step(self) -> None:
         # TODO: REFACTOR. Remove his entire overload is here only to debug.
@@ -168,11 +152,12 @@ class Runner(Npc):
             return False
 
         if self.followee not in Terrain.filter_food_by_zone(food, self.followee.location.get_runner_zone()):
-            # The food got picked up.
-            self.stop_movement()
-            self.target_state = 0
+            # The food got picked up. We only reset the followee but don't stop movement.
             debug("Runner.tick_eat",
                   f"{self.str_info()} tried to eat {self.followee} but it got picked/eaten.")
+            self.followee = None
+            self.followee_last_found = None
+            self.target_state = 0
             return True
 
         if self.location != self.followee.location:
@@ -183,7 +168,9 @@ class Runner(Npc):
                   f"{self.str_info()} tried to eat {self.followee} but it hasn't reached it yet.")
             return False
 
-        # At this point, we're on top of our target food that still exists.
+        # At this point, we're on top of our target food that still exists, so we're definitely
+        # going to eat and stop movement.
+
         if self.followee.is_correct:
             self.print(Runner.CORRECT_EAT_MESSAGE)
 

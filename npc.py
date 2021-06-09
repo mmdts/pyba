@@ -41,8 +41,7 @@ class Npc(Unit):
         if self.is_alive():
             if self.followee is not None:
                 self.follow(self.followee)  # Re-follow a target that might move.
-            self.do_cycle()  # Can return False only in runners.
-            self.step()
+            self.do_cycle()
             return True
 
         if self.tick_despawn():

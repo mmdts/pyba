@@ -84,18 +84,29 @@ class Unit(Locatable):
     def can_single_step(self, destination: C) -> bool:
         return self.location.can_single_step(destination)
 
-    def can_act_on(self, target: Locatable, action_range: Optional[int] = None) -> bool:
+    def can_act_on(self, target: Optional[Locatable], action_range: Optional[int] = None) -> bool:
         # Specify action_range as a parameter when doing a long range action (attacking).
         # This causes action distance and sight mechanics to be used.
-        # Otherwise, follow mechanics are used.
-        if action_range is not None and action_range > 1:
-            return self.location - target.location <= action_range and self.can_see(target)
+        # Otherwise, follow mechanics and sight mechanics are used.
 
-        # The target can be acted upon from any adjacent square.
+        # Target is None, we can't act on it.
+        if target is None:
+            return False
+
+        # We're ranged, so we can act from afar.
+        if action_range is not None and action_range > 1:
+            return 0 < self.location.chebyshev_to(self.followee.location) <= action_range and self.can_see(target)
+
+        # The target can be acted upon from any adjacent square, including the square under.
+        if target.follow_type == D.B and target.follow_allow_under:
+            return self.location.taxicab_to(target.location) <= 1 and self.can_see(target)
+
+        # The target can be acted upon from any adjacent square, excluding the square under.
         if target.follow_type == D.B:
-            return self.location.taxicab_to(target.location) <= 1
+            return self.location.taxicab_to(target.location) == 1 and self.can_see(target)
 
         # The target needs to be acted upon from a specific square.
+        # This is the only condition that doesn't require sight.
         return target.location + target.follow_type == self.location
 
     def is_within_action_distance_of(self, target) -> bool:  # target: Penance

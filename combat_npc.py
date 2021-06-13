@@ -45,7 +45,7 @@ class CombatNpc(Npc):
         if tick > 0 and tick % self.game.wave.CYCLE == 0:
             self.switch_target()
 
-        if self.can_attack():
+        if self.can_act_on(self.followee, self.ATTACK_RANGE):
             self.stop_movement(clear_target=True)  # Npc reached and is now attacking.
 
         self.unit_call()  # exhausts pmac and steps
@@ -55,10 +55,6 @@ class CombatNpc(Npc):
     @property
     def choice_arg(self):
         return self.game.players.get_iterable()
-
-    @abstractmethod
-    def can_attack(self) -> bool:
-        raise NotImplementedError(f"{self.__class__.__name__} needs to implement CombatNpc.can_attack.")
 
 
 class Fighter(CombatNpc):
@@ -71,9 +67,6 @@ class Fighter(CombatNpc):
     def __init__(self, wave_number: int, game: Inspectable):
         super().__init__(wave_number, E.FIGHTER_SPAWN, game)
 
-    def can_attack(self) -> bool:
-        return self.followee is not None and self.location.taxicab_to(self.followee.location) == self.ATTACK_RANGE
-
 
 class Ranger(CombatNpc):
     HITPOINTS: List[int] = [20, 28, 29, 34, 41, 50, 50, 54, 58, 50]
@@ -84,6 +77,3 @@ class Ranger(CombatNpc):
 
     def __init__(self, wave_number: int, game: Inspectable):
         super().__init__(wave_number, E.RANGER_SPAWN, game)
-
-    def can_attack(self) -> bool:
-        return self.followee is not None and 0 < self.location.chebyshev_to(self.followee.location) <= self.ATTACK_RANGE

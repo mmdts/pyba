@@ -157,7 +157,7 @@ class Unit(Locatable):
         self.followee = target
         self.followee_last_found = target.location
 
-        if self.location == destination:
+        if self.location == destination and self.can_act_on(target):
             return False
 
         self.target = destination

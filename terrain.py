@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import re
 from typing import Union, Optional, List, Callable, Deque, Tuple, Dict
 
@@ -540,6 +541,27 @@ class Inspectable:
 
     def stall(self, action: Callable, *args, **kwargs):
         self.arg.players.main_attacker.stall_queue.append((action, args, kwargs))
+
+
+class Targeting:
+    # All methods and constants of class Targeting should be static.
+    @staticmethod
+    def filter_by_sight(candidates: List[Locatable], center: C, radius: int = None) -> List[Locatable]:
+        return [
+            candidate for candidate in candidates
+            if center.can_see(candidate.location) and
+            (radius is None or center.chebyshev_to(candidate.location) <= radius)
+        ]
+
+    @staticmethod
+    def choice(candidates: List[Locatable], center: C = None, radius: int = None) -> Optional[Locatable]:
+        if center is not None:
+            candidates = Targeting.filter_by_sight(candidates, center, radius)
+
+        if len(candidates) == 0:
+            return None
+
+        return random.choice(candidates)
 
 
 class Terrain:

@@ -599,7 +599,10 @@ class Terrain:
 
     @staticmethod
     def letter_at(tile: C) -> str:
-        return MAP[tile.y][tile.x]
+        if 0 < tile.x < E.MAP_DIM.x and 0 < tile.y < E.MAP_DIM.y:
+            return MAP[tile.y][tile.x]
+
+        return "#"  # Out of bounds are all #.
 
     @staticmethod
     def level_at(tile: C) -> int:

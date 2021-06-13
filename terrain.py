@@ -337,7 +337,7 @@ class C:  # Tile, Location, Displacement
     # TODO: REMEMBER Sight is required for Player to launch an attack against a CombatNpc
     def can_see(self, target: C) -> bool:
         # We have an iterator that starts at self, and is supposed to reach target by traversing in blocks of absolute
-        # magnitude of 1 in the main horizon and slope in the side horizon (with the respective sign for direction).
+        # magnitude of 1 in the long axis and slope in the short axis (with the respective sign for direction).
         iterator = self.copy()
         dist = target - iterator
 
@@ -345,20 +345,21 @@ class C:  # Tile, Location, Displacement
         if dist == D.X:
             return True
 
-        # Our main horizon is the smaller distance.
-        main_horizon = abs(dist.x) > abs(dist.y) and 1 or 0
-        side_horizon = 1 - main_horizon
+        short_axis = abs(dist.x) > abs(dist.y) and 1 or 0
+        long_axis = 1 - short_axis
 
         # Shifts are done so that "integer decimals" have a precision of 16 bits.
         # Any variable that starts with the decimal_ prefix exists in decimal space.
         # We need to deal with decimals because we have slopes that are always less than 1.
-        decimal_m = self[main_horizon] << E.DECIMAL_SHIFT
+        decimal_short_axis = iterator[short_axis] << E.DECIMAL_SHIFT
 
-        # Our main horizon is the smaller distance, so that slope is always less than 1.
-        decimal_slope = (dist[main_horizon] << E.DECIMAL_SHIFT) // dist[side_horizon]
+        # Our short axis is the smaller distance, so that slope is always less than 1.
+        # The slope should always take the sign of the short axis, therefore, the long distance is considered absolute.
+        # We add a slope for the short axis each time we add 1 for the long axis.
+        decimal_slope = (dist[short_axis] << E.DECIMAL_SHIFT) // abs(dist[long_axis])
 
-        # This is our movement in the main direction.
-        i = dist[side_horizon] > 0 and 1 or -1
+        # This is our movement in the long axis is a big number (1 or -1 is bigger than the fractional slope).
+        long_axis_increment = dist[long_axis] > 0 and 1 or -1
 
         # The half add:
         # We add half to start at a corner. This makes it so that starting to "increment up by adding the slope"
@@ -369,22 +370,22 @@ class C:  # Tile, Location, Displacement
         # We want a slope of negative half to actually bring us below the
         # decimal 0xH0000 and bring us to the decimal 0xLFFFF where H and L are number examples with L = H - 1
         # This conditional add only affects situations in which the slope is exactly half.
-        decimal_m += E.DECIMAL_HALF + (dist[main_horizon] < 0 and -1 or 0)
+        decimal_short_axis += E.DECIMAL_HALF + (dist[short_axis] < 0 and -1 or 0)
 
         # In the loop below, iterator[s] is always linearly incremented, and for each increment of iterator[s],
         # iterator[m] is increased by a fraction of a square (by assigning it a reconverted value from decimal_m).
 
         # We check for can_single_see once, and a second time if the added decimals form a full square.
-        while iterator[side_horizon] != target[side_horizon]:
+        while iterator[long_axis] != target[long_axis]:
             """ Check one longer distance tile"""
 
             old_iterator = iterator.copy()
 
-            iterator[side_horizon] += i
+            iterator[long_axis] += long_axis_increment
 
             # This line does nothing on the first run of the loop, but on subsequent runs, it will update
             # iterator[m] with the new decimal_m made from adding the slope a few lines later.
-            iterator[main_horizon] = decimal_m >> E.DECIMAL_SHIFT
+            iterator[short_axis] = decimal_short_axis >> E.DECIMAL_SHIFT
 
             if not old_iterator.can_single_see(iterator):
                 return False
@@ -393,13 +394,13 @@ class C:  # Tile, Location, Displacement
 
             # Add the slope and recheck, form the old_iterator and iterator just like above, and recheck if the tile
             # is different, then check for can_single_see a second time if it is.
-            decimal_m += decimal_slope
+            decimal_short_axis += decimal_slope
 
             old_iterator = iterator.copy()
 
-            iterator[main_horizon] = decimal_m >> E.DECIMAL_SHIFT
+            iterator[short_axis] = decimal_short_axis >> E.DECIMAL_SHIFT
 
-            if old_iterator[main_horizon] == iterator[main_horizon]:
+            if old_iterator[short_axis] == iterator[short_axis]:
                 # We haven't formed a full square from those decimals (made by adding slope) yet.
                 continue
 

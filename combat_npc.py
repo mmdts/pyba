@@ -10,6 +10,7 @@ from npc import Npc
 class CombatNpc(Npc):
     DEFENCE: List[int] = None
 
+    DUE_TO_SPAWN_TICKS: int = 0
     ATTACK_RANGE: int = 1
 
     def __init__(self, wave_number: int, location: C, game: Inspectable, name: str = None):

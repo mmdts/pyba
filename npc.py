@@ -11,7 +11,17 @@ class Npc(Unit):
     HITPOINTS: List[int] = None
 
     DESPAWN_TICKS: int = 2
-    DUE_TO_SPAWN_TICKS: int  # 2 for Healer, 1 for Runner, 0 for CombatNpc.
+
+    # This variable decides how many ticks a new penance would be able to spawn after the last one has taken
+    # lethal damage.
+    #
+    # Healers spawn instantly after lethal damage, and thus have DUE_TO_SPAWN_TICKS = 2
+    # Runners spawn 1 tick after taking lethal damage, and thus have DUE_TO_SPAWN_TICKS = 1
+    # CombatNpcs spawn 2 ticks after taking lethal damage, and thus have DUE_TO_SPAWN_TICKS = 0
+    #
+    # The condition for CombatNpcs isn't tick accurate (it depends on how they died), but
+    # is good enough for our purposes.
+    DUE_TO_SPAWN_TICKS: int
 
     CYCLE_COUNT: int = 10  # Penance do actions in cycles of CYCLE_COUNT ticks.
 

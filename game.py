@@ -205,7 +205,7 @@ class Game:
         return Terrain.new()
 
     def print_runners(self):
-        game_print("Game.print_runners", *(f"    {str(runner)}\n" for runner in self.wave.penance.runners))
+        game_print("Game.print_runners", *(f"    {runner}\n" for runner in self.wave.penance.runners))
 
     def bass(self):
         # The one true pass that rules them all.

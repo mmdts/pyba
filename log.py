@@ -46,6 +46,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Player.__call__": C,  # The busy wait.
     # "Player.path": C,
     "Player.move": C,
+    # "Player.move.pathing_queue": C,
     # "Player.single_step": C,
     "Unit.exhaust_pmac": C,
     # "Npc.__call__": LC,
@@ -57,6 +58,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Runner.tick_target": LB,
     # "Runner.walk": LB,
 
+    "Healer.heal": LG,
     "Healer.do_cycle": LG,
     "Healer.switch_target": LG,
     "Healer.single_step": G,

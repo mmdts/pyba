@@ -37,7 +37,7 @@ class Unit(Locatable):
         return self.unit_call()
 
     def str_info(self) -> str:
-        return f"{LOG_C}{'Unnamed':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+        return f"{LOG_C}{'Unnamed':<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
     def __str__(self):
         return self.str_info()
@@ -65,13 +65,13 @@ class Unit(Locatable):
 
         if not wait_only:
             for i in range(r):
-                debug("Unit.exhaust_pmac", f"{str(self)} exhausting a pmac entity.")
+                debug("Unit.exhaust_pmac", f"{self} exhausting a pmac entity.")
                 action, args, kwargs = self.post_move_action_queue.pop(0)
                 action(*args, **kwargs)
 
         # Wait action queue is never reset by anything.
         for i in range(rf):
-            debug("Unit.exhaust_pmac", f"{str(self)} exhausting a forced pmac entity.")
+            debug("Unit.exhaust_pmac", f"{self} exhausting a forced pmac entity.")
             action, args, kwargs = self.post_wait_action_queue.pop(0)
             action(*args, **kwargs)
 

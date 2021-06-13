@@ -590,7 +590,7 @@ class Terrain:
         # Takes a dequeue / list of something printable (with __str__ defined).
         rv = "["
         for tile in queue:
-            rv += f"{str(tile)}, "
+            rv += f"{tile}, "
         rv += "]"
         return rv.replace(", ]", "]")
 

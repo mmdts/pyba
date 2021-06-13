@@ -43,7 +43,7 @@ class Runner(Npc):
         self.followee: Optional[Food] = None
 
     def str_info(self) -> str:
-        return f"{LB}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {self.target_state})@{str(self.location)}{J}"
+        return f"{LB}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {self.target_state})@{self.location}{J}"
 
     def do_cycle(self) -> Optional[bool]:
         # Runner do_cycle does not call self.unit_call because runners do not path normally or attack.
@@ -82,7 +82,7 @@ class Runner(Npc):
             self.target = self.walk()
 
         if self.cycle == 1 and self.blugh_i == 0 and self.followee is None:
-            debug("Runner.do_cycle", f"{str(self)} will stop movement because the target food disappeared.")
+            debug("Runner.do_cycle", f"{self} will stop movement because the target food disappeared.")
             self.stop_movement()
 
         if not followee_eaten_or_picked:
@@ -122,7 +122,7 @@ class Runner(Npc):
                     first_food = o
                 if self.location.chebyshev_to(o.location) <= self.SNIFF_DISTANCE:
                     debug("Runner.tick_target",
-                          f"{str(self)} switched target from {self.followee} to {first_food}.")
+                          f"{self} switched target from {self.followee} to {first_food}.")
 
                     self.target_state = 0
                     # Follow just sets self.target, Npc.step is where the pathing and movement is at.
@@ -136,7 +136,7 @@ class Runner(Npc):
         if self.followee is None:
             # Not targeting any food. Probably will random-walk.
             debug("Runner.tick_eat",
-                  f"{str(self)} has no target. It is random walking.")
+                  f"{self} has no target. It is random walking.")
             return False
 
         if self.followee not in Terrain.filter_food_by_zone(food, self.followee.location.get_runner_zone()):
@@ -144,19 +144,19 @@ class Runner(Npc):
 
             # This part is debugging code
             debug("Runner.tick_eat",
-                  f"{str(self)} tried to eat {self.followee} but it got picked/eaten.")
+                  f"{self} tried to eat {self.followee} but it got picked/eaten.")
 
             hendi_success = self.cycle in Runner.TARGET_STATE_MAP[self.target_state]
             soft_crash = self.cycle in [7, 8, 9, 0]
 
             if hendi_success:
-                debug("Runner.tick_eat.c", f"{str(self)} successfully got hendied.")
+                debug("Runner.tick_eat.c", f"{self} successfully got hendied.")
 
             if soft_crash:
-                debug("Runner.tick_eat.c", f"{str(self)} slow multied / soft crashed.")
+                debug("Runner.tick_eat.c", f"{self} slow multied / soft crashed.")
 
             if not soft_crash and not hendi_success:
-                debug("Runner.tick_eat.c", f"{str(self)} hard crashed.")
+                debug("Runner.tick_eat.c", f"{self} hard crashed.")
             # This is the end of the debugging code part.
 
             self.stop_movement(clear_target=False)
@@ -168,7 +168,7 @@ class Runner(Npc):
             # It checks for this BEFORE stepping, which means it eats one tick after the final step,
             # and not on the final step tick?
             debug("Runner.tick_eat",
-                  f"{str(self)} tried to eat {self.followee} but it hasn't reached it yet.")
+                  f"{self} tried to eat {self.followee} but it hasn't reached it yet.")
             return False
 
         # At this point, we're on top of our target food that still exists, so we're definitely
@@ -194,7 +194,7 @@ class Runner(Npc):
             self.target = C(self.location.x, (E.TRAP + 4 * D.N).y)
 
         debug("Runner.tick_eat",
-              f"{str(self)} ate {self.followee}, which was {self.followee.is_correct and 'correct' or 'wrong'}.")
+              f"{self} ate {self.followee}, which was {self.followee.is_correct and 'correct' or 'wrong'}.")
 
         # Remove the food.
         food.pop(food.index(self.followee))
@@ -246,6 +246,6 @@ class Runner(Npc):
         destination.x = max(min(destination.x, E.TRAP.x), (E.WEST_TRAP + D.W).x)
 
         debug("Runner.walk",
-              f"{str(self)} decided to walk to {destination}.")
+              f"{self} decided to walk to {destination}.")
 
         return destination

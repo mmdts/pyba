@@ -239,7 +239,7 @@ class MainAttacker(Attacker):
         return super().__call__()
 
     def str_info(self) -> str:
-        return f"{M}{'MAttacker':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+        return f"{M}{'MAttacker':<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
 
 class SecondAttacker(Attacker):
@@ -247,4 +247,4 @@ class SecondAttacker(Attacker):
         super().__init__(E.SECOND_ATTACKER_SPAWN, game)
 
     def str_info(self) -> str:
-        return f"{M}{'SAttacker':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+        return f"{M}{'SAttacker':<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"

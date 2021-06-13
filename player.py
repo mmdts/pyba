@@ -42,7 +42,7 @@ class Player(Unit):
 
     def __call__(self):
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).
-            debug("Player.__call__", f"{str(self)} is currently busy with busy_i = {self.busy_i}.")
+            debug("Player.__call__", f"{self} is currently busy with busy_i = {self.busy_i}.")
             self.busy_i -= 1
             return True
 
@@ -54,7 +54,7 @@ class Player(Unit):
         return self.__class__.__name__
 
     def str_info(self) -> str:
-        return f"{LOG_C}{self.name:<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+        return f"{LOG_C}{self.name:<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
     @staticmethod
     @abstractmethod
@@ -115,7 +115,7 @@ class Player(Unit):
                     bfs_queue.append(tile)
 
             if len(bfs_queue) == 0:
-                debug("Player.path", f"{str(self)}'s bfs_queue finished before we find a path.")
+                debug("Player.path", f"{self}'s bfs_queue finished before we find a path.")
                 return closest
 
             bfs_i += 1
@@ -123,7 +123,7 @@ class Player(Unit):
             # BFS queue should always be empty (triggering the condition above) before bfs_i hits BFS_LIMIT.
             # This condition should never be reached.
             if bfs_i == Player.BFS_LIMIT:
-                debug("Player.path", f"{str(self)} tried more than BFS_LIMIT pops "
+                debug("Player.path", f"{self} tried more than BFS_LIMIT pops "
                                      f"in bfs_queue but couldn't find a path.")
                 return closest
 
@@ -136,7 +136,7 @@ class Player(Unit):
         # one or two tiles per tick depending on whether the unit is running.
         #
         # Any move command should overwrite any existing move commands.
-        debug("Player.move", f"{str(self)} fires a move.")
+        debug("Player.move", f"{self} fires a move.")
         self.stop_movement()
         self.target = destination  # For other classes to know that we're pathing.
 
@@ -151,12 +151,12 @@ class Player(Unit):
 
         if len(self.pathing_queue) == 0:
             self.stop_movement()
-            debug("Player.move", f"{str(self)} tried to path but ended up with an empty pathing queue.")
+            debug("Player.move.pathing_queue", f"{self} tried to path but ended up with an empty pathing queue.")
             return
 
         # The leftmost element should be the current tile, we pop it.
         self.pathing_queue.popleft()
-        debug("Player.move", f"{str(self)}'s final pathing queue is: {Terrain.queue_info(self.pathing_queue)}")
+        debug("Player.move.pathing_queue", f"{self}'s final pathing queue is: {Terrain.queue_info(self.pathing_queue)}")
 
     def cant_single_step_callback(self, tile: C) -> None:
         # This method is called if the single step fails.
@@ -178,7 +178,7 @@ class Player(Unit):
         if location_changed:
             Terrain.unblock(old_location)
             Terrain.block(self.location)
-            debug("Player.single_step", f"{str(self)} successfully single stepped to {self.location}.")
+            debug("Player.single_step", f"{self} successfully single stepped to {self.location}.")
 
         return location_changed
 

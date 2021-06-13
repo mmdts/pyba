@@ -106,4 +106,4 @@ def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
 
         return _dict
 
-    raise NotImplementedError(f"The object provided, {str(x)} cannot be transmitted.")
+    raise NotImplementedError(f"The object provided, {x} cannot be transmitted.")

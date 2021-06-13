@@ -48,7 +48,7 @@ class Npc(Unit):
 
         if self.is_alive():
             if self.followee is not None:
-                debug("Npc.__call__", f"{str(self)} is following {str(self.followee)} and decided to refollow it.")
+                debug("Npc.__call__", f"{self} is following {self.followee} and decided to refollow it.")
                 self.follow(self.followee)  # Re-follow a target that might move.
             self.do_cycle()
             return True
@@ -64,13 +64,13 @@ class Npc(Unit):
 
     @abstractmethod
     def str_info(self) -> str:
-        return f"{LC}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, _)@{str(self.location)}{J}"
+        return f"{LC}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, _)@{self.location}{J}"
 
     def print(self, *args, **kwargs):
-        game_print("Penance.print", f"{str(self)}", *args, **kwargs)
+        game_print("Penance.print", f"{self}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
-                "PENANCE::", f"{str(self)}", *args
+                "PENANCE::", f"{self}", *args
             )])
         )
 
@@ -107,8 +107,6 @@ class Npc(Unit):
         #
         # A move that relies on Npc.path will only ever move one tile. Maker of the move function is responsible
         # for the repetitive per-tick calling of this function that is going to make the Npc move seamlessly.
-        #
-        # TODO: CHECK https://discord.com/channels/@me/821965940362969129/822317123782836245
         if start is None:
             start = self.location.copy()
 

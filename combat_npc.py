@@ -28,7 +28,7 @@ class CombatNpc(Npc):
             letter = self.followee.access_letter()
 
         return f"{LM}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {letter})" \
-               f"@{str(self.location)} -> HP: {self.hitpoints}{J}"
+               f"@{self.location} -> HP: {self.hitpoints}{J}"
 
     # Damage is taken in the player attack call.
     def do_cycle(self) -> Optional[bool]:

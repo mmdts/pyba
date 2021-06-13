@@ -40,7 +40,7 @@ class Healer(Npc):
             letter = self.followee.access_letter()
 
         return f"{LG}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {letter})" \
-               f"@{str(self.location)} -> HP: {self.hitpoints}{J}"
+               f"@{self.location} -> HP: {self.hitpoints}{J}"
 
     def do_cycle(self):
         tick = self.game.wave.relative_tick
@@ -62,12 +62,6 @@ class Healer(Npc):
 
         self.unit_call()
 
-    def single_step(self) -> bool:
-        # TODO: REMOVE this. The whole overload is here for debug.
-        if len(self.pathing_queue) > 0 and self.pathing_queue[0] != self.location:
-            debug("Healer.single_step", f"{str(self)} decided to single step with target {str(self.target)}.")
-        return super().single_step()
-
     def switch_target(self, on_reach: Action = None) -> bool:
         # On action is completely ignored here, as it is decided within the function to be
         # self.switch_target_state_and_heal_if_runner
@@ -77,7 +71,7 @@ class Healer(Npc):
             self.target_state == Healer.TARGETING_RUNNER and Healer.RUNNER_ACTION_DISTANCE or Unit.ACTION_DISTANCE
         )
         if self.followee is not None:
-            debug("Healer.switch_target", f"{str(self)} decided to follow {str(self.followee)}.")
+            debug("Healer.switch_target", f"{self} decided to follow {self.followee}.")
             self.follow(self.followee, (self.switch_target_state_and_heal_if_runner, (self.followee,), {}))
             return True
         if self.target_state == Healer.TARGETING_RUNNER:  # Healers do not random walk when targeting players.
@@ -89,7 +83,7 @@ class Healer(Npc):
         # The argument "followee" gets special handling in Npc.switch_target, and does not need to be provided in
         # the Action's middle Tuple.
         self.target_state = (self.target_state + 1) % Healer.TARGET_STATE_COUNT
-        debug("Healer.on_reach", f"{str(self)} reached {str(followee)} "
+        debug("Healer.on_reach", f"{self} reached {followee} "
                                  f"and switched target state to {self.target_state}.")
         if isinstance(followee, Runner):
             followee.hitpoints = Runner.HITPOINTS[self.wave_number]

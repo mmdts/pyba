@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from random import random
-from typing import List, Callable, Tuple, Dict
+from typing import List, Optional
 
-from terrain import Locatable, Terrain, C, Inspectable, E, D
 from log import game_print, debug, J, LC
+from terrain import Locatable, C, Inspectable, Targeting, Action, D
 from unit import Unit
 
 
@@ -138,7 +138,7 @@ class Npc(Unit):
         # We're stuck.
         return start
 
-    def follow(self, target: Locatable, on_reach: Tuple[Callable, Tuple, Dict] = None) -> bool:
+    def follow(self, target: Locatable, on_reach: Action = None) -> bool:
         assert self.can_see(target) or self.followee == target, \
             "Npcs can only follow targets they can see or are already following."
 

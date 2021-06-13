@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, List, Deque, Callable, Tuple, Dict
+from typing import Optional, List, Deque
 from collections import deque
 
-from terrain import Terrain, C, D, Locatable, Inspectable
 from log import debug, J, C as LOG_C
+from terrain import Terrain, C, D, Locatable, Inspectable, Action
 
 
 class Unit(Locatable):
@@ -28,8 +28,8 @@ class Unit(Locatable):
         self.target: C = self.location.copy()  # It changes, it needs to be a copy.
         self.pathing_queue: Deque[C] = deque()
         # Using poison, using GameObjects, picking items, attacking.
-        self.post_move_action_queue: List[Tuple[Callable, Tuple, Dict]] = []  # A callable, its args, and its kwargs.
-        self.post_wait_action_queue: List[Tuple[Callable, Tuple, Dict]] = []
+        self.post_move_action_queue: List[Action] = []  # A callable, its args, and its kwargs.
+        self.post_wait_action_queue: List[Action] = []
         self.is_running: bool = False
         assert self.location is not None, "Cannot create a unit without a location."
 
@@ -75,7 +75,7 @@ class Unit(Locatable):
             action, args, kwargs = self.post_wait_action_queue.pop(0)
             action(*args, **kwargs)
 
-    def queue_action(self, action: Tuple[Callable, Tuple, Dict], forced: bool = False):
+    def queue_action(self, action: Action, forced: bool = False):
         if forced:
             self.post_wait_action_queue.append(action)
         else:
@@ -120,7 +120,7 @@ class Unit(Locatable):
         # Player.path (smart pathfinding). You can check those instead for more details.
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Unit.path.")
 
-    def follow(self, target: Locatable, on_reach: Tuple[Callable, Tuple, Dict] = None) -> bool:
+    def follow(self, target: Locatable, on_reach: Action = None) -> bool:
         # Default follow behavior is persistent. Manually set followee to None to stop following.
         # Follow doesn't move you. It requires an explicit call to Player.move or Npc.step to move you.
         if not target.is_followable():

@@ -1,10 +1,10 @@
-from typing import List, Tuple, Callable, Dict, Optional
+from typing import List, Tuple, Optional
 
 from dispenser import Dispenser
 from dropped_item import Food, DroppedItem, Logs, Hammer
 from game_object import Trap, WEGameObject
-from terrain import C, E, Inspectable, Y, Terrain
 from log import debug, M, J
+from terrain import C, E, Inspectable, Y, Terrain, Action
 from player import Player
 
 # Gear bonuses are on the form of (accuracy, damage, set bonus, attack speed, range)
@@ -226,7 +226,7 @@ class MainAttacker(Attacker):
     def __init__(self, game: Inspectable):
         super().__init__(E.MAIN_ATTACKER_SPAWN, game)
         self.is_stalling: bool = False  # Extending, duping, or forcing.
-        self.stall_queue: List[Tuple[Callable, Tuple, Dict]] = []  # A callable, its args, and its kwargs.
+        self.stall_queue: List[Action] = []  # A callable, its args, and its kwargs.
 
     def __call__(self) -> bool:
         # If the player stops stalling, we empty the queue.  # TODO: BUILD all actions that stop stalling to do so.

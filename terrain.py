@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union, Optional, List, Callable, Deque
+from typing import Union, Optional, List, Callable, Deque, Tuple, Dict
 
 # Note that blocking and sight calculations here are inaccurate, but are intentionally left this way to simplify
 # writing code. Right now, I prefer code legibility and ease over code rigour and speed.
@@ -38,6 +38,8 @@ from typing import Union, Optional, List, Callable, Deque
 # Note: Sight and movement are only allowed if the height difference is less than 2.
 # Check out the implementations of C.can_single_step and C.can_single_see for more details.
 from log import game_print, X, K
+
+Action = Tuple[Callable, Tuple, Dict]
 
 MAP: List[str] = [
     "#################$$$$$#################",

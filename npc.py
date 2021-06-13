@@ -49,7 +49,7 @@ class Npc(Unit):
         if self.is_alive():
             if self.followee is not None:
                 debug("Npc.__call__", f"{self} is following {self.followee} and decided to refollow it.")
-                self.follow(self.followee)  # Re-follow a target that might move.
+                self.follow(self.followee)  # Re-follow a followee that might move.
             self.do_cycle()
             return True
 
@@ -111,7 +111,7 @@ class Npc(Unit):
             start = self.location.copy()
 
         if destination is None:
-            destination = self.target.copy()
+            destination = self.destination.copy()
 
         relative = destination - start
 
@@ -146,25 +146,25 @@ class Npc(Unit):
     def choice_arg(self):
         raise NotImplementedError("Specific Npc species should override this function to specify what they follow.")
 
-    def set_random_walk_target(self):
+    def set_random_walk_destination(self):
         pass  # TODO: BUILD Implement random walk.
 
-    def switch_target(self, on_reach: Action = None) -> bool:
+    def switch_followee(self, on_reach: Action = None) -> bool:
         self.followee = Targeting.choice(self.choice_arg, self.location, Unit.ACTION_DISTANCE)
         if self.followee is not None:
             self.follow(self.followee, on_reach)
             return True
-        self.set_random_walk_target()
+        self.set_random_walk_destination()
         return False
 
-    def follow(self, target: Locatable, on_reach: Action = None) -> bool:
-        assert self.can_see(target) or self.followee == target, \
+    def follow(self, followee: Locatable, on_reach: Action = None) -> bool:
+        assert self.can_see(followee) or self.followee == followee, \
             "Npcs can only follow targets they can see or are already following."
 
-        rv = super().follow(target, on_reach)
+        rv = super().follow(followee, on_reach)
         if rv:
             # To make sure pathing queue is not empty and PMAC does not get exhausted except when supposed to.
-            self.pathing_queue.append(self.target)
+            self.pathing_queue.append(self.destination)
 
         return rv
 

@@ -58,7 +58,7 @@ export class Locatable {
             "post_move_action_queue": null,  // Length of the PMAC.
             'busy_i': null,
             "calls_with": null,
-            "target": null,
+            "destination": null,
             "pathing_queue": [],
             "followee": null,
             "follow_type": null,

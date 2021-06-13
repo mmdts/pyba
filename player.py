@@ -88,7 +88,7 @@ class Player(Unit):
             start = self.location.copy()
 
         if destination is None:
-            destination = self.target.copy()
+            destination = self.destination.copy()
 
         closest = start  # We need to keep track of the closest tile in case BFS does not conclude.
         closest_distance = start.chebyshev_to(destination)  # The closest tile is decided based on chebyshev distance.
@@ -138,7 +138,7 @@ class Player(Unit):
         # Any move command should overwrite any existing move commands.
         debug("Player.move", f"{self} fires a move.")
         self.stop_movement()
-        self.target = destination  # For other classes to know that we're pathing.
+        self.destination = destination  # For other classes to know that we're pathing.
 
         # First, we do pathing.
         destination = self.path(destination, None)
@@ -233,7 +233,7 @@ class Player(Unit):
         if not self.location.renders_game_object(dispenser):
             return False
         self.follow(dispenser, (self.use_dispenser, (dispenser, option), {}))
-        self.move(self.target)
+        self.move(self.destination)
         return True
 
     def click_destroy_items(self, inventory_slots: List[int]) -> bool:

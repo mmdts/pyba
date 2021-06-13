@@ -336,11 +336,11 @@ class C:  # Tile, Location, Displacement
         return True
 
     # TODO: REMEMBER Sight is required for Player to launch an attack against a CombatNpc
-    def can_see(self, target: C) -> bool:
-        # We have an iterator that starts at self, and is supposed to reach target by traversing in blocks of absolute
-        # magnitude of 1 in the long axis and slope in the short axis (with the respective sign for direction).
+    def can_see(self, destination: C) -> bool:
+        # We have an iterator that starts at self, and is supposed to reach destination by traversing in blocks of
+        # absolute magnitude of 1 in the long axis and slope in the short axis (with the respective sign for direction).
         iterator = self.copy()
-        dist = target - iterator
+        dist = destination - iterator
 
         # We can see the square we're standing on.
         if dist == D.X:
@@ -377,7 +377,7 @@ class C:  # Tile, Location, Displacement
         # iterator[m] is increased by a fraction of a square (by assigning it a reconverted value from decimal_m).
 
         # We check for can_single_see once, and a second time if the added decimals form a full square.
-        while iterator[long_axis] != target[long_axis]:
+        while iterator[long_axis] != destination[long_axis]:
             """ Check one longer distance tile"""
 
             old_iterator = iterator.copy()
@@ -411,8 +411,8 @@ class C:  # Tile, Location, Displacement
         # If we could see all the tiles in the middle, the loop breaks, and we reach here.
         return True
 
-    def renders_tile(self, target: C) -> bool:
-        return self.chebyshev_to(target) <= E.TILE_RENDER_DISTANCE
+    def renders_tile(self, destination: C) -> bool:
+        return self.chebyshev_to(destination) <= E.TILE_RENDER_DISTANCE
 
     def renders_unit(self, target: Locatable) -> bool:
         return self.chebyshev_to(target.location) <= E.UNIT_RENDER_DISTANCE

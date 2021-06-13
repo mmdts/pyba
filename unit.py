@@ -24,8 +24,7 @@ class Unit(Locatable):
         self.followee: Optional[Locatable] = None
         self.followee_last_found: Optional[C] = None
         self.game: Inspectable = game
-        # self.target is not used for any reason other than debugging anyway.
-        self.target: C = self.location.copy()  # It changes, it needs to be a copy.
+        self.destination: C = self.location.copy()  # It changes, it needs to be a copy.
         self.pathing_queue: Deque[C] = deque()
         # Using poison, using GameObjects, picking items, attacking.
         self.post_move_action_queue: List[Action] = []  # A callable, its args, and its kwargs.
@@ -133,10 +132,10 @@ class Unit(Locatable):
         # Player.path (smart pathfinding). You can check those instead for more details.
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Unit.path.")
 
-    def follow(self, target: Locatable, on_reach: Action = None) -> bool:
+    def follow(self, followee: Locatable, on_reach: Action = None) -> bool:
         # Default follow behavior is persistent. Manually set followee to None to stop following.
         # Follow doesn't move you. It requires an explicit call to Player.move or Npc.step to move you.
-        if not target.is_followable():
+        if not followee.is_followable():
             # Runners are not followable, outside of red-clicking them with something that causes you to run into
             # melee range of them. There is no other way in Runescape to reliably land beside a runner.
             # Since no reasons exist to try to reliably land beside a runner in Barbarian Assault,
@@ -146,32 +145,32 @@ class Unit(Locatable):
             # players (all 5) are followable, and have very valid reasons for being followed.
             return False
 
-        if target.follow_type == D.B:
-            destination = self.get_closest_adjacent_square_to(target)
+        if followee.follow_type == D.B:
+            destination = self.get_closest_adjacent_square_to(followee)
         else:
-            destination = target.location + target.follow_type
+            destination = followee.location + followee.follow_type
 
         if destination is not None and on_reach is not None:
             self.queue_action(on_reach)
 
-        self.followee = target
-        self.followee_last_found = target.location
+        self.followee = followee
+        self.followee_last_found = followee.location
 
-        if self.location == destination and self.can_act_on(target):
+        if self.location == destination and self.can_act_on(followee):
             return False
 
-        self.target = destination
+        self.destination = destination
         return True
 
-    def stop_movement(self, clear_target: bool = False, clear_follow: bool = False):
-        if not clear_target and not clear_follow:
+    def stop_movement(self, clear_destination: bool = False, clear_follow: bool = False):
+        if not clear_destination and not clear_follow:
             # A stop movement command called without any arguments should clear both.
-            clear_target = True
+            clear_destination = True
             clear_follow = True
 
-        if clear_target:
+        if clear_destination:
             self.pathing_queue.clear()
-            self.target = self.location.copy()
+            self.destination = self.location.copy()
         if clear_follow:
             self.followee = None
             self.followee_last_found = None

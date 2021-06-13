@@ -58,16 +58,16 @@ class Healer(Npc):
             self.hitpoints -= self.poison_damage
 
         # START: THIS PART IS NOT TICK PERFECT.
-        # Keep targeting -> reaching forever.
+        # Keep following -> reaching forever.
         if self.followee is None:
-            # It gets cleared by switch_target_state_and_heal_if_runner,
+            # It gets cleared by switch_followee_state_and_heal_if_runner,
             # which happens as the on_reach of Healer.switch_target
-            self.switch_target()
+            self.switch_followee()
         # END
 
         self.unit_call()
 
-    def switch_target(self, on_reach: Action = None) -> bool:
+    def switch_followee(self, on_reach: Action = None) -> bool:
         # On action is completely ignored here, as it is decided within the function to be
         # self.switch_target_state_and_heal_if_runner
         self.followee = Targeting.choice(
@@ -76,16 +76,16 @@ class Healer(Npc):
             self.target_state == Healer.TARGETING_RUNNER and Healer.RUNNER_ACTION_DISTANCE or Unit.ACTION_DISTANCE
         )
         if self.followee is not None:
-            debug("Healer.switch_target", f"{self} decided to follow {self.followee}.")
-            self.follow(self.followee, (self.switch_target_state_and_heal_if_runner, (self.followee,), {}))
+            debug("Healer.switch_followee", f"{self} decided to follow {self.followee}.")
+            self.follow(self.followee, (self.switch_followee_state_and_heal_if_runner, (self.followee,), {}))
             return True
         if self.target_state == Healer.TARGETING_RUNNER:  # Healers do not random walk when targeting players.
-            self.set_random_walk_target()
+            self.set_random_walk_destination()
             return False
 
-    def switch_target_state_and_heal_if_runner(self, followee):
+    def switch_followee_state_and_heal_if_runner(self, followee):
         # To be used as the on_reach function.
-        # The argument "followee" gets special handling in Npc.switch_target, and does not need to be provided in
+        # The argument "followee" gets special handling in Healer.switch_followee, and does not need to be provided in
         # the Action's middle Tuple.
         self.target_state = (self.target_state + 1) % Healer.TARGET_STATE_COUNT
         debug("Healer.on_reach", f"{self} reached {followee} "

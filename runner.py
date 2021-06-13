@@ -79,7 +79,7 @@ class Runner(Npc):
 
         if self.cycle == 6 and self.followee is None and self.blugh_i == 0 and not self.has_chomped and self.is_alive():
             # Start a predecided move or a random move.
-            self.target = self.walk()
+            self.destination = self.walk()
 
         if self.cycle == 1 and self.blugh_i == 0 and self.followee is None:
             debug("Runner.do_cycle", f"{self} will stop movement because the target food disappeared.")
@@ -122,10 +122,10 @@ class Runner(Npc):
                     first_food = o
                 if self.location.chebyshev_to(o.location) <= self.SNIFF_DISTANCE:
                     debug("Runner.tick_target",
-                          f"{self} switched target from {self.followee} to {first_food}.")
+                          f"{self} switched followee from {self.followee} to {first_food}.")
 
                     self.target_state = 0
-                    # Follow just sets self.target, Npc.step is where the pathing and movement is at.
+                    # Follow just sets self.destination, Npc.step is where the pathing and movement is at.
                     self.follow(first_food)
                     return
 
@@ -134,9 +134,9 @@ class Runner(Npc):
         # Returns True if an action concerning the food has been made: We just ate it or it has been picked up.
         # Currently, the return value has no use.
         if self.followee is None:
-            # Not targeting any food. Probably will random-walk.
+            # Not following any food. Probably will random-walk.
             debug("Runner.tick_eat",
-                  f"{self} has no target. It is random walking.")
+                  f"{self} has no followee. It is random walking.")
             return False
 
         if self.followee not in Terrain.filter_food_by_zone(food, self.followee.location.get_runner_zone()):
@@ -159,7 +159,7 @@ class Runner(Npc):
                 debug("Runner.tick_eat.c", f"{self} hard crashed.")
             # This is the end of the debugging code part.
 
-            self.stop_movement(clear_target=False)
+            self.stop_movement(clear_destination=False)
             self.target_state = 0
             return True
 
@@ -191,7 +191,7 @@ class Runner(Npc):
             self.cycle -= (self.cycle > 5 or self.cycle == 0) and 5 or 0  # Reduce the higher cycles by 5.
 
             # Blugh moves have special logic for wave 10, be careful when implementing.
-            self.target = C(self.location.x, (E.TRAP + 4 * D.N).y)
+            self.destination = C(self.location.x, (E.TRAP + 4 * D.N).y)
 
         debug("Runner.tick_eat",
               f"{self} ate {self.followee}, which was {self.followee.is_correct and 'correct' or 'wrong'}.")

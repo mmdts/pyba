@@ -16,7 +16,7 @@ def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
             "post_move_action_queue",
             # "busy_i",
             "calls_with",
-            "target",
+            "destination",
             # "pathing_queue",
             "followee",
             "follow_type",

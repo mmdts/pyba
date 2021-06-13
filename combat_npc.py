@@ -39,13 +39,13 @@ class CombatNpc(Npc):
                 self.follow(self.tagger)
                 self.tagger = None
             else:
-                self.set_random_walk_target()
+                self.set_random_walk_destination()
 
         if tick % self.game.wave.CYCLE == 0:
-            self.switch_target()
+            self.switch_followee()
 
         if self.can_act_on(self.followee, self.ATTACK_RANGE):
-            self.stop_movement(clear_target=True)  # Npc reached and is now attacking.
+            self.stop_movement(clear_destination=True)  # Npc reached and is now attacking.
 
         self.unit_call()  # exhausts pmac and steps
 

@@ -180,14 +180,14 @@ class Defender(Player):
         self.follow(trap, (self.repair_trap, (trap,), {}))
         debug("Defender.click_repair_trap",
               f"We followed the trap and our current pathing queue is: {Terrain.queue_info(self.pathing_queue)}.")
-        self.move(self.target)
+        self.move(self.destination)
         return True
 
     def click_pick_item(self, item: DroppedItem) -> bool:
         if not self.location.renders_dropped_item(item):
             return False
         self.follow(item, (self.pick_item, (item,), {}))
-        self.move(self.target)
+        self.move(self.destination)
         return True
 
 

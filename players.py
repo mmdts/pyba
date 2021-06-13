@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 from player import Player
 from role_player import MainAttacker, SecondAttacker, Healer, Collector, Defender
@@ -55,3 +55,6 @@ class Players:
                 return False
 
         return True
+
+    def get_iterable(self) -> List[Player]:
+        return [self.main_attacker, self.second_attacker, self.healer, self.collector, self.defender]

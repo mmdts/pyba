@@ -1,19 +1,37 @@
-from typing import List, Tuple, Optional, Dict
-from colorama import init, Fore, Style
+from typing import Optional, Dict
+from colorama import init, Fore, Back
 
 init()
 
-DEBUG: bool = False
-GAME_PRINT: bool = False
-J = Style.RESET_ALL
+DEBUG: bool = True
+GAME_PRINT: bool = True
+J = Fore.RESET
+K = Back.RESET
+X = Back.BLACK
+
 R = Fore.RED
 Y = Fore.YELLOW
-B = Fore.BLUE
 G = Fore.GREEN
 C = Fore.CYAN
-LC = Fore.LIGHTCYAN_EX
-LG = Fore.LIGHTGREEN_EX
+B = Fore.BLUE
+M = Fore.MAGENTA
 
+LR = Fore.LIGHTRED_EX
+LY = Fore.LIGHTYELLOW_EX
+LG = Fore.LIGHTGREEN_EX
+LC = Fore.LIGHTCYAN_EX
+LB = Fore.LIGHTBLUE_EX
+LM = Fore.LIGHTMAGENTA_EX
+
+# Defender is B, Runner is LB
+# Healer is G, Penance Healer is LG
+# Attacker is M, CombatNpc are LM
+# Collector is LY
+# Game Print is Y
+# C is used for general purpose Player / Unit.
+# LC is used for general purpose Npc.
+# R and LR are used for errors.
+# None is used for anything Wave and above.
 ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Interface.disconnect_handler": None,
     # "Interface.room_connect": None,
@@ -21,22 +39,28 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Room.__call__": None,
     # "Wave.__call__": None,
 
-    "Defender.pick_item": LC,
-    # "Defender.click_repair_trap": C,
-    # "Defender.repair_trap": LC,
+    # "Defender.pick_item": B,
+    # "Defender.click_repair_trap": B,
+    # "Defender.repair_trap": B,
 
-    # "Player.__call__": G,  # The busy wait.
-    "Player.path": G,
-    "Player.move": G,
-    "Player.single_step": LG,
-    "Unit.exhaust_pmac": LG,
+    # "Player.__call__": C,  # The busy wait.
+    # "Player.path": C,
+    "Player.move": C,
+    # "Player.single_step": C,
+    "Unit.exhaust_pmac": C,
+    # "Npc.__call__": LC,
 
-    "Runner.do_cycle": C,
-    "Runner.step": LC,
-    "Runner.tick_eat": C,
-    "Runner.tick_eat.c": B,
-    "Runner.tick_target": C,
-    "Runner.walk": LC,
+    # "Runner.do_cycle": LB,
+    # "Runner.step": LB,
+    # "Runner.tick_eat": LB,
+    "Runner.tick_eat.c": LB,
+    # "Runner.tick_target": LB,
+    # "Runner.walk": LB,
+
+    "Healer.do_cycle": LG,
+    "Healer.switch_target": LG,
+    "Healer.single_step": G,
+    "Healer.on_reach": LG,
 }
 
 
@@ -44,9 +68,10 @@ ALLOWED_GAME_PRINT_NAMESPACES: Dict[str, Optional[int]] = {
     # "Game.print_map": None,
     # "Game.print_runners": None,
     "Penance.print": Y,
-    # "Wave.print": None,
+    "Wave.print": Y,
     # "Terrain.print": None,
 }
+
 
 def debug(namespace: str, *args, **kwargs) -> None:
     if not DEBUG:

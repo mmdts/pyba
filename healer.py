@@ -1,3 +1,4 @@
+import math
 from typing import List, Tuple, Union, Optional
 
 from log import debug, J, LG
@@ -8,6 +9,12 @@ from npc import Npc
 from unit import Unit
 
 
+# This is VERY SIMPLE CODE that reproduces the "0 hitsplat" and "poison syncing" effects. It has to do with
+# the initial values of healer variables.
+#
+# I have 100% confidence this is the way healer code in-game is actually written. There's no way the developers
+# wrote more complex code to intentionally reproduce such a side-effect result. I deduce they must have
+# been lazy.
 class Healer(Npc):
     HITPOINTS: List[int] = [27, 32, 37, 43, 49, 55, 60, 67, 76, 60]
     SPAWNS: List[Tuple[int, int]] = [(2, 0), (3, 0), (2, 1), (3, 1), (4, 1), (4, 2), (4, 3), (5, 2), (6, 2), (4, 3)]
@@ -20,16 +27,19 @@ class Healer(Npc):
 
     DUE_TO_SPAWN_TICKS: int = 2
 
-    MAX_POISON: int = 4
+    MAX_POISON_DAMAGE: int = 4
+    POISON_TICKS_PER_HITSPLAT: int = 5
+    MAX_POISON_I: int = POISON_TICKS_PER_HITSPLAT * MAX_POISON_DAMAGE + 1
+
+    POISON_RANGE: int = 1
 
     def __init__(self, wave_number: int, game: Inspectable, name: str = None):
         super().__init__(wave_number, E.PENANCE_HEALER_SPAWN, game, name)
         self.target_state: int = Healer.TARGETING_PLAYER  # It swaps on call of Healer.switch_target.
 
         self.followee: Optional[Union[Player, Runner]] = None
-        self.poison_i: int = -1  # When poisoned, the 4s are 0, 1, 2, 3, 4, and then 3s...
-        self.poison_start_tick: int = -1
-        self.poison_start_tick_synced: bool = True  # When poisoned late, the poison ticks aren't synced.
+        self.poison_i = 1
+        self.poison_start_tick = 0
 
     def str_info(self) -> str:
         letter = self.target_state == Healer.TARGETING_RUNNER and 'R' or 'P'
@@ -43,14 +53,9 @@ class Healer(Npc):
                f"@{self.location} -> HP: {self.hitpoints}{J}"
 
     def do_cycle(self):
-        tick = self.game.wave.relative_tick
-        if self.poison_damage == 0:
-            self.poison_start_tick = -1
-
-        if (tick - self.poison_start_tick) % 5 == 0:
-            self.tick_poison(tick)
-        if tick > 0 and tick % self.game.wave.CYCLE == 0:  # Using Wave.CYCLE causes cyclic dependencies.
-            self.poison_start_tick_synced = False
+        if (self.game.wave.relative_tick - self.poison_start_tick) % 5 == 0 and self.is_poisoned():
+            self.poison_i -= 1
+            self.hitpoints -= self.poison_damage
 
         # START: THIS PART IS NOT TICK PERFECT.
         # Keep targeting -> reaching forever.
@@ -95,35 +100,20 @@ class Healer(Npc):
         return self.target_state == Healer.TARGETING_PLAYER and \
                self.game.players.get_iterable() or self.game.wave.penance.runners
 
-    def apply_poison(self, tick):
-        # We only check for synced / unsynced poison on an unpoisoned healer.
+    def apply_poison(self):
+        # Player Healer calls this function.
         if not self.is_poisoned():
-            if self.poison_start_tick_synced:
-                # Setting self.poison_start_tick is the condition for self.is_poisoned to start returning true,
-                # and therefore for self.tick_poison to deal damage.
-                self.poison_start_tick = ((tick // 5) + 1) * 5
-            else:
-                self.poison_start_tick = tick + 5
+            self.poison_start_tick = self.game.wave.relative_tick
 
         # We reset the poison damage if it's already poisoned.
-        self.poison_i = -1
+        self.poison_i = Healer.MAX_POISON_I
 
         # The forced poison damage.
-        self.hitpoints -= Healer.MAX_POISON
-
-    def tick_poison(self, tick):
-        if self.is_poisoned():
-            self.poison_i += 1  # This has to be before self.poison_damage to make sure self.poison_i is >= 0.
-            self.hitpoints -= self.poison_damage
+        self.hitpoints -= Healer.MAX_POISON_DAMAGE
 
     def is_poisoned(self) -> bool:
-        return self.poison_start_tick > -1
-
-    def heal(self, runner: Runner) -> None:
-        runner.hitpoints = Runner.HITPOINTS[self.wave_number]
+        return self.poison_i > 0
 
     @property
     def poison_damage(self) -> int:
-        if self.poison_i == -1:
-            return 0
-        return Healer.MAX_POISON - (self.poison_i // 5)
+        return math.ceil(self.poison_i / Healer.POISON_TICKS_PER_HITSPLAT)

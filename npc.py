@@ -1,5 +1,5 @@
+import random
 from abc import abstractmethod
-from random import random
 from typing import List, Optional
 
 from log import game_print, debug, J, LC
@@ -64,15 +64,6 @@ class Npc(Unit):
             )])
         )
 
-    def switch_target(self, targets: List[Locatable], on_reach: Tuple[Callable, Tuple, Dict] = None):
-        filtered_targets = [target for target in targets
-                            if self.location.chebyshev_to(target.location) <= E.UNIT_RENDER_DISTANCE]
-
-        idx = int(random() * len(filtered_targets))
-
-        target = filtered_targets[idx]
-        self.follow(target, on_reach)
-
     @abstractmethod
     def do_cycle(self) -> Optional[bool]:
         # All Npcs call do_cycle during their usual call procedure if they're alive.
@@ -81,8 +72,7 @@ class Npc(Unit):
         # procedure).
 
         # Non-runner Npcs should attempt to all return super().__call__(tick) as part of their usual do_cycle procedure.
-        # raise NotImplementedError(f"{self.__class__.__name__} needs to implement Npc.do_cycle.")
-        return True  # TODO: Return this to raise after implementing.
+        raise NotImplementedError(f"{self.__class__.__name__} needs to implement Npc.do_cycle.")
 
     def tick_despawn(self) -> bool:
         # Reduces despawn countdown and returns true if it hits zero.
@@ -96,6 +86,11 @@ class Npc(Unit):
     def is_followable(self) -> bool:
         return self.is_alive() and super().is_followable()
 
+    def get_closest_adjacent_square_to(self, target: Locatable) -> C:
+        if not target.follow_allow_under and self.location == target.location:
+            # Npcs will path randomly to get out from under a player.
+            return target.location + random.choice([D.W, D.E, D.S, D.N])
+        return target.location + (self.location - target.location).single_step_taxicab()
 
     def path(self, destination: C = None, start: C = None) -> C:
         # Dumb pathfinding (referred to as Npc.path) tries to only calculate and add one tile per call.
@@ -138,12 +133,32 @@ class Npc(Unit):
         # We're stuck.
         return start
 
+    @property
+    @abstractmethod
+    def choice_arg(self):
+        raise NotImplementedError("Specific Npc species should override this function to specify what they follow.")
+
+    def set_random_walk_target(self):
+        pass  # TODO: BUILD Implement random walk.
+
+    def switch_target(self, on_reach: Action = None) -> bool:
+        self.followee = Targeting.choice(self.choice_arg, self.location, Unit.ACTION_DISTANCE)
+        if self.followee is not None:
+            self.follow(self.followee, on_reach)
+            return True
+        self.set_random_walk_target()
+        return False
+
     def follow(self, target: Locatable, on_reach: Action = None) -> bool:
         assert self.can_see(target) or self.followee == target, \
             "Npcs can only follow targets they can see or are already following."
 
-        return super().follow(target, on_reach)
+        rv = super().follow(target, on_reach)
+        if rv:
+            # To make sure pathing queue is not empty and PMAC does not get exhausted except when supposed to.
+            self.pathing_queue.append(self.target)
 
+        return rv
 
     def step(self) -> None:
         # We get a new tile using Npc.path (which gives only one tile) with no parents.
@@ -155,4 +170,8 @@ class Npc(Unit):
     def can_single_step(self, destination: C) -> bool:
         return self.location.can_npc_single_step(destination)
 
-    # TODO: BUILD Implement random walk.
+    def cant_single_step_callback(self, tile: C) -> None:
+        # This method is called if the single step fails.
+        # Tile argument is present even though it's never used because the calling function
+        # provides it, and we need to receive it.
+        pass

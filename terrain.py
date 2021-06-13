@@ -494,7 +494,7 @@ class Y:  # Inventory
 class Locatable:  # Used by: [Unit, GameObject, DroppedItem]
     def __init__(self, location: C):
         self.follow_type: C = D.B
-        self.is_inherently_followable: bool = True  # Runners are not inherently followable.
+        self.follow_allow_under: bool = False
         self.location: C = location.copy()  # It changes, it needs to be a copy.
 
         # I know this looks ugly, but this is how we'll be able to find Locatables
@@ -505,7 +505,8 @@ class Locatable:  # Used by: [Unit, GameObject, DroppedItem]
         G.uuids.append(self.uuid)
 
     def is_followable(self) -> bool:
-        return self.is_inherently_followable
+        # Dead NPCs are not followable.
+        return True
 
 
 class Inspectable:

@@ -30,23 +30,24 @@ class Trap(WEGameObject):
         self.west_spawn: C = E.WEST_TRAP
         self.charges: int = Trap.MAX_CHARGES
         super().__init__(which)
-        self.follow_type = D.B
+        self.follow_type: C = D.B
+        self.follow_allow_under: bool = True
 
 
 class Cannon(WEGameObject):
     def __init__(self, which: int):
-        self.east_spawn = E.CANNON
-        self.west_spawn = E.WEST_CANNON
+        self.east_spawn: C = E.CANNON
+        self.west_spawn: C = E.WEST_CANNON
         super().__init__(which)
-        self.follow_type = D.S
+        self.follow_type: C = D.S
 
 
 class Hopper(WEGameObject):
     def __init__(self, which: int):
-        self.east_spawn = E.HOPPER
-        self.west_spawn = E.WEST_HOPPER
+        self.east_spawn: C = E.HOPPER
+        self.west_spawn: C = E.WEST_HOPPER
         super().__init__(which)
-        self.follow_type = D.S
+        self.follow_type: C = D.S
 
 
 class GameObjects:

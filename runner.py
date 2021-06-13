@@ -34,7 +34,6 @@ class Runner(Npc):
         super().__init__(wave_number, E.RUNNER_SPAWN, game)
         self.target_state: int = Runner.INITIAL_TARGET_STATE
 
-        self.is_inherently_followable: bool = False
         self.forced_movements: List[C] = []
         self.blugh_i: int = 0
         self.has_chomped: bool = False
@@ -160,8 +159,7 @@ class Runner(Npc):
                 debug("Runner.tick_eat.c", f"{str(self)} hard crashed.")
             # This is the end of the debugging code part.
 
-            self.followee = None
-            self.followee_last_found = None
+            self.stop_movement(clear_target=False)
             self.target_state = 0
             return True
 
@@ -225,6 +223,10 @@ class Runner(Npc):
             return D.W
         return D.S
 
+    @property
+    def choice_arg(self):
+        # Runners choose a food using special mechanics.
+        return None
 
     def walk(self) -> C:
         if self.location == E.RUNNER_REDIRECT_1:

@@ -4,8 +4,8 @@ from random import random
 from typing import Optional, List
 
 from dispenser import Dispenser
-from terrain import Terrain, C, Inspectable, Y
 from log import debug, J, C as LOG_C
+from terrain import Terrain, C, Inspectable, Y, Locatable, D
 from unit import Unit
 
 
@@ -61,6 +61,10 @@ class Player(Unit):
     def access_letter() -> str:
         raise NotImplementedError("Access letter is not implemented for this player.")
 
+    def get_closest_adjacent_square_to(self, target: Locatable) -> C:
+        if not target.follow_allow_under and self.location == target.location:
+            return target.location + D.W  # Players will always path west to get out from under an Npc.
+        return target.location + (self.location - target.location).single_step_taxicab()
 
     def path(self, destination: C = None, start: C = None) -> C:
         # Smart pathfinding (referred to as Player.path) creates an entire path per call, using breadth-first search.
@@ -154,6 +158,11 @@ class Player(Unit):
         self.pathing_queue.popleft()
         debug("Player.move", f"{str(self)}'s final pathing queue is: {Terrain.queue_info(self.pathing_queue)}")
 
+    def cant_single_step_callback(self, tile: C) -> None:
+        # This method is called if the single step fails.
+        # Tile argument is present even though it's never used because the calling function
+        # provides it, and we need to receive it.
+        self.post_move_action_queue.clear()
 
     def single_step(self) -> bool:
         # Players will unblock the tile they move from and block the tile they move to,

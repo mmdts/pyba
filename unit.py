@@ -107,9 +107,11 @@ class Unit(Locatable):
     def can_see(self, target: Locatable):
         return self.location.can_see(target.location)
 
+    def get_closest_adjacent_square_to(self, target: Locatable) -> C:
+        # Both Player and Npc override this. This is just a fallback implementation that
+        # does not respect target.follow_allow_under mechanics.
+        return target.location + (self.location - target.location).single_step_taxicab()
 
-    def get_closest_adjacent_square_to(self, destination: C) -> C:  # TODO: CHECK that this has NS preference.
-        return destination + (self.location - destination).single_step_taxicab()
     # Npcs and Players move differently.
     # For Npcs, simply set self.target then call Npc.step.
     # For players, simply call Player.move with a destination argument.
@@ -134,7 +136,7 @@ class Unit(Locatable):
             return False
 
         if target.follow_type == D.B:
-            destination = self.get_closest_adjacent_square_to(target.location)
+            destination = self.get_closest_adjacent_square_to(target)
         else:
             destination = target.location + target.follow_type
 
@@ -144,22 +146,28 @@ class Unit(Locatable):
         self.followee = target
         self.followee_last_found = target.location
 
-        if destination == self.target:
+        if self.location == destination:
             return False
 
         self.target = destination
         return True
 
-    def stop_movement(self):
-        self.pathing_queue.clear()
-        self.target = self.location.copy()
-        self.followee = None
-        self.followee_last_found = None
+    def stop_movement(self, clear_target: bool = False, clear_follow: bool = False):
+        if not clear_target and not clear_follow:
+            # A stop movement command called without any arguments should clear both.
+            clear_target = True
+            clear_follow = True
 
+        if clear_target:
+            self.pathing_queue.clear()
+            self.target = self.location.copy()
+        if clear_follow:
+            self.followee = None
+            self.followee_last_found = None
 
+    @abstractmethod
     def cant_single_step_callback(self, tile: C) -> None:
-        # This method is called if the single step fails.
-        self.post_move_action_queue.clear()
+        raise NotImplementedError(f"{self.__class__.__name__} needs to implement Unit.cant_single_step_callback.")
 
     def single_step(self) -> bool:
         # Returns True if unit has moved indeed, False if failed to move.

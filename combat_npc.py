@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import List, Tuple, Optional
 
 from log import LM, J
@@ -42,7 +41,7 @@ class CombatNpc(Npc):
             else:
                 self.set_random_walk_target()
 
-        if tick > 0 and tick % self.game.wave.CYCLE == 0:
+        if tick % self.game.wave.CYCLE == 0:
             self.switch_target()
 
         if self.can_act_on(self.followee, self.ATTACK_RANGE):
@@ -73,7 +72,7 @@ class Ranger(CombatNpc):
     SPAWNS: List[Tuple[int, int]] = [(2, 2), (3, 1), (3, 3), (3, 3), (5, 1), (5, 2), (6, 1), (5, 3), (7, 1), (6, 1)]
     DEFENCE: List[int] = [21, 29, 33, 42, 46, 54, 61, 68, 80, 61]
 
-    ATTACK_RANGE: int = 5  # TODO: CHECK ranger attack range.
+    ATTACK_RANGE: int = 6
 
     def __init__(self, wave_number: int, game: Inspectable):
         super().__init__(wave_number, E.RANGER_SPAWN, game)

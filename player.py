@@ -4,8 +4,8 @@ from random import random
 from typing import Optional, List
 
 from dispenser import Dispenser
-from log import debug
 from terrain import Terrain, C, Inspectable, Y
+from log import debug, J, C as LOG_C
 from unit import Unit
 
 
@@ -32,8 +32,6 @@ class Player(Unit):
     INVENTORY_SPACE: int = 28
     CALL_COUNT: int = 3
 
-    """Basic Functions"""
-
     def __init__(self, location: C, game: Inspectable):
         super().__init__(location, game)
         self.is_running: bool = True
@@ -44,7 +42,7 @@ class Player(Unit):
 
     def __call__(self):
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).
-            debug("Player.__call__", f"Currently busy with busy_i = {self.busy_i}.")
+            debug("Player.__call__", f"{str(self)} is currently busy with busy_i = {self.busy_i}.")
             self.busy_i -= 1
             return True
 
@@ -55,12 +53,14 @@ class Player(Unit):
         # Currently used only for printing.
         return self.__class__.__name__
 
+    def str_info(self) -> str:
+        return f"{LOG_C}{self.name:<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+
     @staticmethod
     @abstractmethod
     def access_letter() -> str:
         raise NotImplementedError("Access letter is not implemented for this player.")
 
-    """Movement Functions"""
 
     def path(self, destination: C = None, start: C = None) -> C:
         # Smart pathfinding (referred to as Player.path) creates an entire path per call, using breadth-first search.
@@ -111,7 +111,7 @@ class Player(Unit):
                     bfs_queue.append(tile)
 
             if len(bfs_queue) == 0:
-                debug("Player.path", "bfs_queue finished before we find a path.")
+                debug("Player.path", f"{str(self)}'s bfs_queue finished before we find a path.")
                 return closest
 
             bfs_i += 1
@@ -119,7 +119,8 @@ class Player(Unit):
             # BFS queue should always be empty (triggering the condition above) before bfs_i hits BFS_LIMIT.
             # This condition should never be reached.
             if bfs_i == Player.BFS_LIMIT:
-                debug("Player.path", "We tried more than BFS_LIMIT pops in bfs_queue but couldn't find a path.")
+                debug("Player.path", f"{str(self)} tried more than BFS_LIMIT pops "
+                                     f"in bfs_queue but couldn't find a path.")
                 return closest
 
     def move(self, destination: C) -> None:
@@ -131,7 +132,7 @@ class Player(Unit):
         # one or two tiles per tick depending on whether the unit is running.
         #
         # Any move command should overwrite any existing move commands.
-        debug("Player.move", "Move fires.")
+        debug("Player.move", f"{str(self)} fires a move.")
         self.stop_movement()
         self.target = destination  # For other classes to know that we're pathing.
 
@@ -146,14 +147,13 @@ class Player(Unit):
 
         if len(self.pathing_queue) == 0:
             self.stop_movement()
-            debug("Player.move", "Pathing queue is empty.")
+            debug("Player.move", f"{str(self)} tried to path but ended up with an empty pathing queue.")
             return
 
         # The leftmost element should be the current tile, we pop it.
         self.pathing_queue.popleft()
-        debug("Player.move", f"Final pathing queue is: {Terrain.queue_info(self.pathing_queue)}")
+        debug("Player.move", f"{str(self)}'s final pathing queue is: {Terrain.queue_info(self.pathing_queue)}")
 
-    """Stepping Functions"""
 
     def single_step(self) -> bool:
         # Players will unblock the tile they move from and block the tile they move to,
@@ -169,12 +169,9 @@ class Player(Unit):
         if location_changed:
             Terrain.unblock(old_location)
             Terrain.block(self.location)
-            debug("Player.single_step", f"Successfully single stepped to {self.location}.")
-
+            debug("Player.single_step", f"{str(self)} successfully single stepped to {self.location}.")
 
         return location_changed
-
-    """Interaction Functions"""
 
     def _use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
         # You self._use_dispenser() in all Player.use_dispenser implementations.
@@ -191,8 +188,6 @@ class Player(Unit):
         # Option is the various things you can do by right clicking the dispenser.
         # Option only makes sense for healer, as no other role has a reason to right click a dispenser.
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Player.click_use_dispenser.")
-
-    """Inspect/Click Helpers"""
 
     @property
     def required_call(self) -> int:
@@ -216,14 +211,12 @@ class Player(Unit):
         # Required to USE!
         return self.game.wave.correct_calls[self.access_letter()]
 
-    """Inspect Functions"""
     # TODO: BUILD Inspect Functions [THREAD]
     #       Make the interfaces only able to interact with the class through click and inspect.
     #       No longer should it read (or even be allowed access to) any other class properties.
     #       As for interacting with the game, a toggle option "Disable Fog of War" should allow
     #       you to observe actions outside your render distances.
 
-    """Click Functions"""
     # Click functions return False if the player cannot do the action.
 
     def click_use_dispenser(self, option: Optional[int] = None) -> bool:

@@ -17,8 +17,6 @@ class Unit(Locatable):
     ACTION_DISTANCE = 15
     SAFE_ACTION_DISTANCE = 16
 
-    """Basic Functions"""
-
     # ONLY click_ AND inspect_ METHODS AND __init__ AND __call__ SHOULD USE THE self.game VARIABLE!!
     # All other methods should be passed the parameters they need explicitly!
     def __init__(self, location: C, game: Inspectable):
@@ -43,6 +41,7 @@ class Unit(Locatable):
 
     def __str__(self):
         return self.str_info()
+
     def unit_call(self) -> bool:
         # Process the game tick for this entity. Returns false on death.
 
@@ -82,8 +81,6 @@ class Unit(Locatable):
         else:
             self.post_move_action_queue.append(action)
 
-    """Boolean Functions"""
-
     def can_single_step(self, destination: C) -> bool:
         return self.location.can_single_step(destination)
 
@@ -110,12 +107,9 @@ class Unit(Locatable):
     def can_see(self, target: Locatable):
         return self.location.can_see(target.location)
 
-    """Get Functions"""
 
     def get_closest_adjacent_square_to(self, destination: C) -> C:  # TODO: CHECK that this has NS preference.
         return destination + (self.location - destination).single_step_taxicab()
-
-    """Movement Functions"""
     # Npcs and Players move differently.
     # For Npcs, simply set self.target then call Npc.step.
     # For players, simply call Player.move with a destination argument.
@@ -162,7 +156,6 @@ class Unit(Locatable):
         self.followee = None
         self.followee_last_found = None
 
-    """Stepping Functions"""
 
     def cant_single_step_callback(self, tile: C) -> None:
         # This method is called if the single step fails.
@@ -192,8 +185,6 @@ class Unit(Locatable):
             return
         if self.is_running:
             self.single_step()
-
-    """Misc Functions"""
 
     def view_last_path(self) -> str:
         # Print the return value of this method after issuing a move command to figure out what's going on.

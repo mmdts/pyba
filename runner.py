@@ -30,8 +30,6 @@ class Runner(Npc):
     CYCLE_MAP: List[int] = [None, None, 2, 3, 1, 2, 3]
     TARGET_STATE_MAP: List[List[int]] = [[], [4], [2, 5], [3, 6]]
 
-    """Basic Functions"""
-
     def __init__(self, wave_number: int, game: Inspectable):
         super().__init__(wave_number, E.RUNNER_SPAWN, game)
         self.target_state: int = Runner.INITIAL_TARGET_STATE
@@ -48,8 +46,7 @@ class Runner(Npc):
     def str_info(self) -> str:
         return f"{LB}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {self.target_state})@{str(self.location)}{J}"
 
-    """Tick Functions"""
-    def do_cycle(self) -> None:
+    def do_cycle(self) -> Optional[bool]:
         # Runner do_cycle does not call self.unit_call because runners do not path normally or attack.
         if self.has_chomped:
             self.urgh_raa_i -= 1
@@ -212,8 +209,6 @@ class Runner(Npc):
             self.has_escaped = True
             self.print(self.ESCAPE_MESSAGE)
 
-    """Get Functions"""
-
     def get_random_walk(self) -> C:
         # Forced movement can be set to simulate a wave when runners move the specified movement.
         # It can be used by appending to the forced movement array the number of specified moves you want.
@@ -230,7 +225,6 @@ class Runner(Npc):
             return D.W
         return D.S
 
-    """Movement Functions"""
 
     def walk(self) -> C:
         if self.location == E.RUNNER_REDIRECT_1:

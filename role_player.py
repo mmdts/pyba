@@ -3,8 +3,8 @@ from typing import List, Tuple, Callable, Dict, Optional
 from dispenser import Dispenser
 from dropped_item import Food, DroppedItem, Logs, Hammer
 from game_object import Trap, WEGameObject
-from log import debug
 from terrain import C, E, Inspectable, Y, Terrain
+from log import debug, M, J
 from player import Player
 
 # Gear bonuses are on the form of (accuracy, damage, set bonus, attack speed, range)
@@ -77,8 +77,6 @@ class Defender(Player):
     @staticmethod
     def access_letter() -> str:
         return "d"
-
-    """Interaction Functions"""
 
     def use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
         self._use_dispenser(dispenser, option)
@@ -160,9 +158,6 @@ class Defender(Player):
 
         del item
 
-    """Click Functions"""
-    # Click functions return False if the player cannot do the action.
-
     def click_drop_food(self, which: int, count: int = 1) -> bool:
         # This function is for usage by the Ai. For human usage, see click_drop_select_food.
         # We queue action because, afaik, dropping food drops it on the next tick rather than instantly.
@@ -243,7 +238,13 @@ class MainAttacker(Attacker):
 
         return super().__call__()
 
+    def str_info(self) -> str:
+        return f"{M}{'MAttacker':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+
 
 class SecondAttacker(Attacker):
     def __init__(self, game: Inspectable):
         super().__init__(E.SECOND_ATTACKER_SPAWN, game)
+
+    def str_info(self) -> str:
+        return f"{M}{'SAttacker':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"

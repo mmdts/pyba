@@ -17,8 +17,6 @@ class Npc(Unit):
 
     DEAD, ALIVE = 0, 1  # They're binary, but we're leaving them as int for legacy.
 
-    """Basic Functions"""
-
     def __init__(self, wave_number: int, location: C, game: Inspectable, name: str = None):
         super().__init__(location, game)
         self.name: str = name
@@ -75,10 +73,8 @@ class Npc(Unit):
         target = filtered_targets[idx]
         self.follow(target, on_reach)
 
-    """Tick Functions"""
-
     @abstractmethod
-    def do_cycle(self) -> bool:
+    def do_cycle(self) -> Optional[bool]:
         # All Npcs call do_cycle during their usual call procedure if they're alive.
         # All Npcs return what do_cycle returns, but since no action despawns non-runner Npcs other than dying and
         # despawning naturally, only runners should ever return False in their do_cycle (as part of the escape
@@ -94,15 +90,12 @@ class Npc(Unit):
         self.despawn_i -= 1
         return self.despawn_i == 0
 
-    """Boolean Functions"""
-
     def is_alive(self) -> bool:
         return self.state == Npc.ALIVE
 
     def is_followable(self) -> bool:
         return self.is_alive() and super().is_followable()
 
-    """Movement Functions"""
 
     def path(self, destination: C = None, start: C = None) -> C:
         # Dumb pathfinding (referred to as Npc.path) tries to only calculate and add one tile per call.
@@ -151,7 +144,6 @@ class Npc(Unit):
 
         return super().follow(target, on_reach)
 
-    """Stepping Functions"""
 
     def step(self) -> None:
         # We get a new tile using Npc.path (which gives only one tile) with no parents.

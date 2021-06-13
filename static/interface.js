@@ -192,7 +192,6 @@ export class Interface {
                     if (this.game.wave.penance.hasOwnProperty(key)) {
                         for (let k = 0; k < this.game.wave.penance[key].length; k++) {
                             if (!this.checkLocation(this.game.wave.penance[key][k].location, [j, i])) continue;
-                            console.log(key);
                             this.penancePerGameTile[key][i][j].push(this.game.wave.penance[key][k]);
                         }
                     }

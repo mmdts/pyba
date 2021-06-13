@@ -3,8 +3,8 @@ from colorama import init, Fore, Back
 
 init()
 
-DEBUG: bool = True
-GAME_PRINT: bool = True
+DEBUG: bool = False
+GAME_PRINT: bool = False
 J = Fore.RESET
 K = Back.RESET
 X = Back.BLACK

@@ -92,7 +92,7 @@ class Wave:
         return self.game.tick - self.start_tick
 
     def print(self, *args, **kwargs):
-        game_print("Wave.print", self.number, *args, **kwargs)
+        game_print("Wave.print", f"Wave {self.number}:", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (f"WAVE {self.number}::", *args)])
         )
@@ -205,7 +205,7 @@ class Game:
         return Terrain.new()
 
     def print_runners(self):
-        game_print("Game.print_runners", *(f"    {runner.str_info()}\n" for runner in self.wave.penance.runners))
+        game_print("Game.print_runners", *(f"    {str(runner)}\n" for runner in self.wave.penance.runners))
 
     def bass(self):
         # The one true pass that rules them all.

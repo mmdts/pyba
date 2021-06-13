@@ -107,7 +107,7 @@ class Penance:
         self.game.wave.print(f"A new {new_species.default_name.lower()} has spawned "
                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
         if tick is not None:
-            new_species.name = f"{Terrain.tick_to_string(tick):>3}" + " " + new_species.default_name
+            new_species.name = f"{Terrain.tick_to_string(tick):0>3}" + " " + new_species.default_name
 
         if isinstance(new_species, Runner):
             # Runner forced movements can be set using the set_runner_movements function.

@@ -4,8 +4,8 @@ from abc import abstractmethod
 from typing import Optional, List, Deque, Callable, Tuple, Dict
 from collections import deque
 
-from log import debug
 from terrain import Terrain, C, D, Locatable, Inspectable
+from log import debug, J, C as LOG_C
 
 
 class Unit(Locatable):
@@ -38,6 +38,11 @@ class Unit(Locatable):
     def __call__(self) -> bool:
         return self.unit_call()
 
+    def str_info(self) -> str:
+        return f"{LOG_C}{'Unnamed':<11}({self.game.tick:0>3}, _, _)@{str(self.location)}{J}"
+
+    def __str__(self):
+        return self.str_info()
     def unit_call(self) -> bool:
         # Process the game tick for this entity. Returns false on death.
 
@@ -61,13 +66,13 @@ class Unit(Locatable):
 
         if not wait_only:
             for i in range(r):
-                debug("Unit.exhaust_pmac", "Exhausting a pmac entity.")
+                debug("Unit.exhaust_pmac", f"{str(self)} exhausting a pmac entity.")
                 action, args, kwargs = self.post_move_action_queue.pop(0)
                 action(*args, **kwargs)
 
         # Wait action queue is never reset by anything.
         for i in range(rf):
-            debug("Unit.exhaust_pmac", "Exhausting a forced pmac entity.")
+            debug("Unit.exhaust_pmac", f"{str(self)} exhausting a forced pmac entity.")
             action, args, kwargs = self.post_wait_action_queue.pop(0)
             action(*args, **kwargs)
 

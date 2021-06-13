@@ -2,7 +2,7 @@ from random import random
 from typing import List, Tuple, Optional
 
 from game_object import Trap
-from log import debug
+from log import debug, J, LB
 from terrain import Terrain, C, D, E, Inspectable
 from npc import Npc
 from dropped_item import Food
@@ -46,7 +46,7 @@ class Runner(Npc):
         self.followee: Optional[Food] = None
 
     def str_info(self) -> str:
-        return f"{self.name}({self.game.tick}, {self.cycle}, {self.target_state})@{str(self.location)}"
+        return f"{LB}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {self.target_state})@{str(self.location)}{J}"
 
     """Tick Functions"""
     def do_cycle(self) -> None:
@@ -86,7 +86,7 @@ class Runner(Npc):
             self.target = self.walk()
 
         if self.cycle == 1 and self.blugh_i == 0 and self.followee is None:
-            debug("Runner.do_cycle", "The target food disappeared and this runner will stop movement.")
+            debug("Runner.do_cycle", f"{str(self)} will stop movement because the target food disappeared.")
             self.stop_movement()
 
         if not followee_eaten_or_picked:
@@ -126,7 +126,7 @@ class Runner(Npc):
                     first_food = o
                 if self.location.chebyshev_to(o.location) <= self.SNIFF_DISTANCE:
                     debug("Runner.tick_target",
-                          f"{self.str_info()} switched target from {self.followee} to {first_food}.")
+                          f"{str(self)} switched target from {self.followee} to {first_food}.")
 
                     self.target_state = 0
                     # Follow just sets self.target, Npc.step is where the pathing and movement is at.
@@ -140,7 +140,7 @@ class Runner(Npc):
         if self.followee is None:
             # Not targeting any food. Probably will random-walk.
             debug("Runner.tick_eat",
-                  f"{self.str_info()} has no target. It is random walking.")
+                  f"{str(self)} has no target. It is random walking.")
             return False
 
         if self.followee not in Terrain.filter_food_by_zone(food, self.followee.location.get_runner_zone()):
@@ -148,19 +148,19 @@ class Runner(Npc):
 
             # This part is debugging code
             debug("Runner.tick_eat",
-                  f"{self.str_info()} tried to eat {self.followee} but it got picked/eaten.")
+                  f"{str(self)} tried to eat {self.followee} but it got picked/eaten.")
 
             hendi_success = self.cycle in Runner.TARGET_STATE_MAP[self.target_state]
             soft_crash = self.cycle in [7, 8, 9, 0]
 
             if hendi_success:
-                debug("Runner.tick_eat.c", f"{self.str_info()} successfully got hendied.")
+                debug("Runner.tick_eat.c", f"{str(self)} successfully got hendied.")
 
             if soft_crash:
-                debug("Runner.tick_eat.c", f"{self.str_info()} slow multied / soft crashed.")
+                debug("Runner.tick_eat.c", f"{str(self)} slow multied / soft crashed.")
 
             if not soft_crash and not hendi_success:
-                debug("Runner.tick_eat.c", f"{self.str_info()} hard crashed.")
+                debug("Runner.tick_eat.c", f"{str(self)} hard crashed.")
             # This is the end of the debugging code part.
 
             self.followee = None
@@ -173,7 +173,7 @@ class Runner(Npc):
             # It checks for this BEFORE stepping, which means it eats one tick after the final step,
             # and not on the final step tick?
             debug("Runner.tick_eat",
-                  f"{self.str_info()} tried to eat {self.followee} but it hasn't reached it yet.")
+                  f"{str(self)} tried to eat {self.followee} but it hasn't reached it yet.")
             return False
 
         # At this point, we're on top of our target food that still exists, so we're definitely
@@ -199,7 +199,7 @@ class Runner(Npc):
             self.target = C(self.location.x, (E.TRAP + 4 * D.N).y)
 
         debug("Runner.tick_eat",
-              f"{self.str_info()} ate {self.followee}, which was {self.followee.is_correct and 'correct' or 'wrong'}.")
+              f"{str(self)} ate {self.followee}, which was {self.followee.is_correct and 'correct' or 'wrong'}.")
 
         # Remove the food.
         food.pop(food.index(self.followee))
@@ -250,6 +250,6 @@ class Runner(Npc):
         destination.x = max(min(destination.x, E.TRAP.x), (E.WEST_TRAP + D.W).x)
 
         debug("Runner.walk",
-              f"{self.str_info()} decided to walk to {destination}.")
+              f"{str(self)} decided to walk to {destination}.")
 
         return destination

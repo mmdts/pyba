@@ -37,7 +37,7 @@ from typing import Union, Optional, List, Callable, Deque
 #
 # Note: Sight and movement are only allowed if the height difference is less than 2.
 # Check out the implementations of C.can_single_step and C.can_single_see for more details.
-from log import game_print
+from log import game_print, X, K
 
 MAP: List[str] = [
     "#################$$$$$#################",
@@ -150,7 +150,7 @@ class C:  # Tile, Location, Displacement
         raise KeyError(f"C[{key}] cannot be set because it does not exist.")
 
     def __str__(self) -> str:
-        return f"({self.x:>2}, {self.y:>2}, {Terrain.letter_at(self)})"
+        return f"{X}({self.x:>2}, {self.y:>2}, {Terrain.letter_at(self)}){K}"
 
     def __hash__(self) -> int:
         return hash((self.x, self.y))
@@ -560,8 +560,13 @@ class Terrain:
         game_print("Terrain.print", "\n", rv)
 
     @staticmethod
-    def queue_info(queue: Deque):
-        return f"{[str(tile) for tile in queue]}"
+    def queue_info(queue: Union[Deque, List]):
+        # Takes a dequeue / list of something printable (with __str__ defined).
+        rv = "["
+        for tile in queue:
+            rv += f"{str(tile)}, "
+        rv += "]"
+        return rv.replace(", ]", "]")
 
     @staticmethod
     def is_occupiable(tile: C) -> bool:

@@ -2,8 +2,8 @@ from abc import abstractmethod
 from random import random
 from typing import List, Callable, Tuple, Dict
 
-from log import game_print, debug
 from terrain import Locatable, Terrain, C, Inspectable, E, D
+from log import game_print, debug, J, LC
 from unit import Unit
 
 
@@ -40,6 +40,7 @@ class Npc(Unit):
 
         if self.is_alive():
             if self.followee is not None:
+                debug("Npc.__call__", f"{str(self)} is following {str(self.followee)} and decided to refollow it.")
                 self.follow(self.followee)  # Re-follow a target that might move.
             self.do_cycle()
             return True
@@ -53,14 +54,15 @@ class Npc(Unit):
     def default_name(self) -> str:
         return self.__class__.__name__
 
-    def str_info(self):
-        return f"{self.name}({self.game.tick}, {self.cycle})@{str(self.location)}"
+    @abstractmethod
+    def str_info(self) -> str:
+        return f"{LC}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, _)@{str(self.location)}{J}"
 
     def print(self, *args, **kwargs):
-        game_print("Penance.print", f"{self.str_info()}", *args, **kwargs)
+        game_print("Penance.print", f"{str(self)}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
-                "PENANCE::", f"{self.str_info()}", *args
+                "PENANCE::", f"{str(self)}", *args
             )])
         )
 

@@ -690,7 +690,7 @@ class Terrain:
             for runner in runner_movements.split("-") if len(runner) > 0
         ]
 
-#
+
 class E:  # Element - All constants are of type C unless otherwise stated.
     # Npcs
     FIGHTER_SPAWN = Terrain.find("A")

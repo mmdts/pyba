@@ -40,6 +40,7 @@ class CombatNpc(Npc):
                 self.tagger = None
             else:
                 self.set_random_walk_destination()
+                self.no_random_walk_i = 10  # Special value to prevent it from random walking again.
 
         if tick % self.game.wave.CYCLE == 0:
             self.switch_followee()

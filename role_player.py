@@ -57,7 +57,9 @@ class Attacker(Player):
             self.spec_restore_i = 0
             self.spec = min(Attacker.MAX_SPEC, self.spec + Attacker.SPEC_RESTORE_AMOUNT)
 
-        pass  # TODO: BUILD Do the rest of attacker processing.
+        # TODO: BUILD Do the rest of attacker processing.
+        # TODO: BUILD Attack with a ranged/melee weapon
+        # TODO: BUILD Handle attack delay (Attacker)
 
         # Do the rest of player processing.
         return super().__call__()

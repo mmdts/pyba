@@ -40,13 +40,19 @@ class Player(Unit):
         self.busy_i: int = 0
         Terrain.block(self.location)
 
-    def __call__(self):
+    def __call__(self) -> bool:
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).
             debug("Player.__call__", f"{self} is currently busy with busy_i = {self.busy_i}.")
             self.busy_i -= 1
             return True
 
-        return super().__call__()
+        # If there are still tiles left in the pathing queue, we only exhaust the wait queue, otherwise, we exhaust
+        # the move queue as well.
+        self.exhaust_pmac(len(self.pathing_queue) != 0)
+
+        self.step()
+
+        return True
 
     @property
     def name(self):

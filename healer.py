@@ -65,7 +65,14 @@ class Healer(Npc):
             self.switch_followee()
         # END
 
-        self.unit_call()
+        self.step()
+
+        debug("Healer.do_cycle",
+              f"{self} {self.can_act_on(self.followee) and 'can act' or 'cant act'} on {self.followee}.")
+
+        if len(self.pathing_queue) == 0 and self.can_act_on(self.followee):
+            # Healers reach and poison on the same tick.
+            self.exhaust_pmac(False)
 
     def switch_followee(self, on_reach: Action = None) -> bool:
         # On action is completely ignored here, as it is decided within the function to be

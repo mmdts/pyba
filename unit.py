@@ -32,29 +32,16 @@ class Unit(Locatable):
         self.is_running: bool = False
         assert self.location is not None, "Cannot create a unit without a location."
 
+    @abstractmethod
     def __call__(self) -> bool:
-        return self.unit_call()
+        # Process the game tick for this entity. Returns false on death.
+        raise NotImplementedError(f"{self.__class__.__name__} needs to implement Unit.call.")
 
     def str_info(self) -> str:
         return f"{LOG_C}{'Unnamed':<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
     def __str__(self):
         return self.str_info()
-
-    def unit_call(self) -> bool:
-        # Process the game tick for this entity. Returns false on death.
-
-        # If there are still tiles left in the pathing queue, we only exhaust the wait queue, otherwise, we exhaust
-        # the move queue as well.
-        self.exhaust_pmac(len(self.pathing_queue) != 0)
-
-        # Process movement.
-        self.step()
-        pass  # TODO: BUILD Attack with a ranged/melee weapon
-        pass  # TODO: BUILD Handle attack delay (Attacker / Penance Fighter / Penance Ranger)
-        pass  # TODO: BUILD Other Npc-only stuff, check Npc page and fill
-
-        return True  # By default, units don't do anything that kills them.
 
     def exhaust_pmac(self, wait_only: bool):
         # To prevent actions that queue more actions from forming an infinite loop.

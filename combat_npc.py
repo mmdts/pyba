@@ -47,7 +47,10 @@ class CombatNpc(Npc):
         if self.can_act_on(self.followee, self.ATTACK_RANGE):
             self.stop_movement(clear_destination=True)  # Npc reached and is now attacking.
 
-        self.unit_call()  # exhausts pmac and steps
+        self.step()
+
+        if len(self.pathing_queue) == 0 and self.can_act_on(self.followee):
+            self.exhaust_pmac(False)
 
         return
 

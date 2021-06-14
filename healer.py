@@ -24,6 +24,7 @@ class Healer(Npc):
     TARGET_STATE_COUNT: int = 2
     TARGETING_PLAYER: int = 0
     TARGETING_RUNNER: int = 1
+    NO_FOLLOW_DELAYS: Tuple[int] = (2, 4)  # 2 between runner and player, 4 between player and runner.
 
     DUE_TO_SPAWN_TICKS: int = 2
 
@@ -40,6 +41,7 @@ class Healer(Npc):
         self.followee: Optional[Union[Player, Runner]] = None
         self.poison_i = 1
         self.poison_start_tick = 0
+        self.no_follow_i: int = 0
 
     def str_info(self) -> str:
         letter = self.target_state == Healer.TARGETING_RUNNER and 'R' or 'P'
@@ -57,18 +59,37 @@ class Healer(Npc):
             self.poison_i -= 1
             self.hitpoints -= self.poison_damage
 
-        # START: THIS PART IS NOT TICK PERFECT.
+        # START: THIS PART IS ALMOST TICK PERFECT.
         # Keep following -> reaching forever.
+
+        # We first check that we aren't following anything. We don't take any action if we are.
+        # self.followee gets cleared by switch_followee_state_and_heal_if_runner,
+        # which happens as the on_reach of Healer.switch_target
+        #
+        # We then check that we're allowed to follow through the self.no_follow_i condition.
+        # If we aren't allowed to follow, then we try to random walk.
+        #
+        # We finally use the lazy "or" to follow if we found something to follow.
+        # If we either aren't allowed to follow or haven't found something to follow when we tried to,
+        # we try to random walk.
         if self.followee is None:
-            # It gets cleared by switch_followee_state_and_heal_if_runner,
-            # which happens as the on_reach of Healer.switch_target
-            self.switch_followee()
+            debug("Healer.do_cycle",
+                  f"{self} checking condition with "
+                  f"self.is_still_static = {self.is_still_static} and self.destination = {self.destination} and "
+                  f"self.no_follow_i = {self.no_follow_i} and self.no_random_walk_i = {self.no_random_walk_i}.")
+
+        if self.followee is None and (self.no_follow_i != 0 or not self.switch_followee()):
+            debug("Healer.do_cycle", f"{self} will attempt to random walk because condition is true.")
+            self.set_random_walk_destination()
+            if self.no_follow_i > 0:
+                self.no_follow_i -= 1
         # END
 
         self.step()
 
-        debug("Healer.do_cycle",
-              f"{self} {self.can_act_on(self.followee) and 'can act' or 'cant act'} on {self.followee}.")
+        if self.followee is not None:
+            debug("Healer.do_cycle",
+                  f"{self} {self.can_act_on(self.followee) and 'can act' or 'cant act'} on {self.followee}.")
 
         if len(self.pathing_queue) == 0 and self.can_act_on(self.followee):
             # Healers reach and poison on the same tick.
@@ -86,9 +107,8 @@ class Healer(Npc):
             debug("Healer.switch_followee", f"{self} decided to follow {self.followee}.")
             self.follow(self.followee, (self.switch_followee_state_and_heal_if_runner, (self.followee,), {}))
             return True
-        if self.target_state == Healer.TARGETING_RUNNER:  # Healers do not random walk when targeting players.
-            self.set_random_walk_destination()
-            return False
+
+        return False
 
     def switch_followee_state_and_heal_if_runner(self, followee):
         # To be used as the on_reach function.
@@ -101,6 +121,7 @@ class Healer(Npc):
             followee.hitpoints = Runner.HITPOINTS[self.wave_number]
 
         self.stop_movement(clear_follow=True)
+        self.no_follow_i = Healer.NO_FOLLOW_DELAYS[self.target_state]
 
     @property
     def choice_arg(self):

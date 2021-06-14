@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import random
+from random import choice
 import re
 from typing import Union, Optional, List, Callable, Deque, Tuple, Dict
 
@@ -562,7 +562,7 @@ class Targeting:
         if len(candidates) == 0:
             return None
 
-        return random.choice(candidates)
+        return choice(candidates)
 
 
 class Terrain:

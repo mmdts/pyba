@@ -1,6 +1,6 @@
-import random
+from random import randrange, choice, randint
 from abc import abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from log import game_print, debug, J, LC
 from terrain import Locatable, C, Inspectable, Targeting, Action, D
@@ -27,6 +27,9 @@ class Npc(Unit):
 
     DEAD, ALIVE = 0, 1  # They're binary, but we're leaving them as int for legacy.
 
+    RANDOM_WALK_ROLL: Tuple[int] = (1, 8)  # Represents a 1/8 chance.
+    RANDOM_WALK_RADIUS: int = 5
+
     def __init__(self, wave_number: int, location: C, game: Inspectable, name: str = None):
         super().__init__(location, game)
         self.name: str = name
@@ -38,6 +41,8 @@ class Npc(Unit):
         self.state: int = Npc.ALIVE
         self.wave_number: int = wave_number
         self.hitpoints: int = self.HITPOINTS[self.wave_number]
+        self.is_still_static: bool = True
+        self.no_random_walk_i: int = 0  # The time it would've taken to reach the destination.
 
     def __call__(self):
         self.cycle += 1  # Cycle starts at 1 and ends at 0 after 9.
@@ -99,7 +104,7 @@ class Npc(Unit):
     def get_closest_adjacent_square_to(self, target: Locatable) -> C:
         if not target.follow_allow_under and self.location == target.location:
             # Npcs will path randomly to get out from under a player.
-            return target.location + random.choice([D.W, D.E, D.S, D.N])
+            return target.location + choice([D.W, D.E, D.S, D.N])
         return target.location + (self.location - target.location).single_step_taxicab()
 
     def path(self, destination: C = None, start: C = None) -> C:
@@ -146,8 +151,21 @@ class Npc(Unit):
     def choice_arg(self):
         raise NotImplementedError("Specific Npc species should override this function to specify what they follow.")
 
-    def set_random_walk_destination(self):
-        pass  # TODO: BUILD Implement random walk.
+    def set_random_walk_destination(self) -> None:
+        if self.no_random_walk_i > 0:
+            return
+
+        self.destination = self.location
+
+        # Using self instead of Npc because maybe overridable.
+        if not self.is_still_static or randrange(0, self.RANDOM_WALK_ROLL[1]) < self.RANDOM_WALK_ROLL[0]:
+            self.destination = self.location + C(
+                randint(-self.RANDOM_WALK_RADIUS, self.RANDOM_WALK_RADIUS),
+                randint(-self.RANDOM_WALK_RADIUS, self.RANDOM_WALK_RADIUS))
+            self.is_still_static = False
+            self.no_random_walk_i = self.location.chebyshev_to(self.destination)
+            if self.no_random_walk_i < 2:
+                self.no_random_walk_i = 2  # For if we path right under ourselves / right beside ourselves.
 
     def switch_followee(self, on_reach: Action = None) -> bool:
         self.followee = Targeting.choice(self.choice_arg, self.location, Unit.ACTION_DISTANCE)
@@ -166,12 +184,16 @@ class Npc(Unit):
             # To make sure pathing queue is not empty and PMAC does not get exhausted except when supposed to.
             self.pathing_queue.append(self.destination)
 
+        self.is_still_static = True
         return rv
 
     def step(self) -> None:
         # We get a new tile using Npc.path (which gives only one tile) with no parents.
         self.pathing_queue.clear()  # Is this really necessary?
         self.pathing_queue.appendleft(self.path())
+
+        if self.no_random_walk_i > 0:
+            self.no_random_walk_i -= 1
 
         return super().step()
 

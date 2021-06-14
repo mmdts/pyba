@@ -5,3 +5,4 @@ __pycache__/
 *.min.js
 
 research/
+parser.py

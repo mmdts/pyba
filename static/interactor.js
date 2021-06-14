@@ -131,6 +131,15 @@ export class Interactor {
                 this.postMoveActionList.push({ display, action, args });
             }
         }
+        if (this.interface.penancePerGameTile["h"][y][x].length > 0) {
+            for (let healer of this.interface.penancePerGameTile["h"][y][x]) {
+                console.log("THIS HAPPENS")
+                let display = "map_h_healer";
+                let action = "click_idle";
+                let args = [];
+                this.postMoveActionList.push({ display, action, args });
+            }
+        }
 
         if (this.interface.role === "a" || this.interface.role === "s") {
             // TODO: Loop over combat npcs within this tile, then add an attack order to actionList for each.

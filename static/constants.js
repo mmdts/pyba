@@ -79,7 +79,7 @@ export const RIGHT_CLICK_OPTIONS_ARRAY = [
     "map_h_disp_0", "map_h_disp_1", "map_h_disp_x", "map_h_disp_2",
     "map_d_item_0", "map_d_item_1", "map_d_item_2", "map_d_item_3", "map_d_item_4",
     "map_c_item_0", "map_c_item_1", "map_c_item_2", "map_c_load", "map_cannon",
-    "map_a_fighter", "map_a_ranger", "inventory_d_h_2",
+    "map_a_fighter", "map_a_ranger", "inventory_d_h_2", "map_h_healer",
     "map_d_trap_0", "map_d_trap_1", "inventory_d_h_b", "map_d_runner",
     "inventory_d_0", "inventory_d_1", "inventory_d_2", "inventory_d_h_0",
     "inventory_d_0_b", "inventory_d_1_b", "inventory_d_2_b", "inventory_d_h_1",

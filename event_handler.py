@@ -4,7 +4,7 @@ from room import Room
 from log import debug
 from role_player import Defender, Healer, Collector, MainAttacker, SecondAttacker
 from player import Player
-from terrain import C, G, Terrain
+from terrain import C, Terrain
 
 
 class EventHandler:
@@ -19,36 +19,36 @@ class EventHandler:
         # args: x, y
         "click_move": (
             lambda args: len(args) == 2,
-            lambda args: (C(*args),)
+            lambda args, player: (C(*args),)
         ),
         "click_select_call": (
             lambda args: len(args) == 1,
-            lambda args: args
+            lambda args, player: args
         ),
         # args: option (for healer)
         "click_use_dispenser": (
             lambda args: len(args) <= 1,
-            lambda args: (len(args) and args[0] or None,)
+            lambda args, player: (len(args) and args[0] or None,)
         ),
         # args: which
         "click_use_cannon": (
             lambda args: len(args) == 1,
-            lambda args: args
+            lambda args, player: args
         ),  # TODO: BUILD click_use_cannon handling.
         # args: which
         "click_fire_egg": (
             lambda args: len(args) == 1,
-            lambda args: args
+            lambda args, player: args
         ),  # TODO: BUILD click_fire_egg handling.
         # args: None
         # args: slots
         "click_destroy_items": (
             lambda args: len(args) == 1,
-            lambda args: args
+            lambda args, player: args
         ),
         "click_idle": (
             lambda args: len(args) == 0,
-            lambda args: ()
+            lambda args, player: ()
         ),
     }
 
@@ -56,31 +56,31 @@ class EventHandler:
         # args: item_uuid
         "click_pick_item": (
             lambda args: len(args) == 1,
-            lambda args: (G.find_by_uuid(args[0]),)
+            lambda args, player: (player.game.find_by_uuid(args[0]),)
         ),
         # args: None
         "click_repair_trap": (
             lambda args: len(args) <= 1,
-            lambda args: args
+            lambda args, player: args
         ),
         # args: which, count
         "click_drop_food": (
             lambda args: len(args) == 2,
-            lambda args: args
+            lambda args, player: args
         ),
         # args: slots
         "click_drop_select_food": (
             lambda args: len(args) == 1,
-            lambda args: args
+            lambda args, player: args
         ),
     }
 
     HEALER_ACTIONS = {
-        # args: which
+        # args: which, target
         "click_use_poison_food": (
-            lambda args: len(args) == 1,
-            lambda args: args
-        ),  # TODO: BUILD click_use_poison_food handling.
+            lambda args: len(args) == 2,
+            lambda args, player: (args[0], player.game.find_by_uuid(args[1]))
+        ),
     }
 
     COLLECTOR_ACTIONS = {  # TODO: Build actions for a/s/c roles.
@@ -124,7 +124,7 @@ class EventHandler:
         if action in actions_list and actions_list[action][0](args):
             add_fn(
                 player.__getattribute__(action),
-                *actions_list[action][1](args)
+                *actions_list[action][1](args, player)
             )
             return True
 

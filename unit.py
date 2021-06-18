@@ -20,7 +20,7 @@ class Unit(Locatable):
     # ONLY click_ AND inspect_ METHODS AND __init__ AND __call__ SHOULD USE THE self.game VARIABLE!!
     # All other methods should be passed the parameters they need explicitly!
     def __init__(self, location: C, game: Inspectable):
-        super().__init__(location)
+        super().__init__(location, game)
         self.followee: Optional[Locatable] = None
         self.followee_last_found: Optional[C] = None
         self.game: Inspectable = game

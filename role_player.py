@@ -97,14 +97,24 @@ class Defender(Player):
         assert str(food_type) in self.inventory, "We cannot drop food we do not have."
         assert food_type < self.CALL_COUNT, "We cannot drop things that aren't food."
         for i in range(count):
-            food_list.append(Food(self.location, food_type, food_type == correct_call))
+            food_list.append(Food(
+                self.location,
+                food_type,
+                food_type == correct_call,
+                self.game
+            ))
             self.inventory[self.inventory.index(str(food_type))] = Y.EMPTY
 
     def drop_select_food(self, inventory_slots: List[int], correct_call: int, food_list: List[Food]) -> None:
         for slot in inventory_slots:
             if self.inventory[slot] not in [Y.CRACKERS, Y.TOFU, Y.WORMS]:
                 continue
-            food_list.append(Food(self.location, int(self.inventory[slot]), int(self.inventory[slot]) == correct_call))
+            food_list.append(Food(
+                self.location,
+                int(self.inventory[slot]),
+                int(self.inventory[slot]) == correct_call,
+                self.game
+            ))
             self.inventory[slot] = Y.EMPTY
 
     def repair_trap(self, trap: Trap) -> bool:

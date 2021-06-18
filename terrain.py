@@ -103,19 +103,6 @@ F = {
 BLOCK_MAP = MAP.copy()
 
 
-# Global Locatable List
-class GlobalLoctableList:
-    def __init__(self):
-        self.locatables: List[Locatable] = []
-        self.uuids: List[int] = []
-
-    def find_by_uuid(self, uuid: int):
-        return self.locatables[self.uuids.index(uuid)]
-
-
-G = GlobalLoctableList()
-
-
 class C:  # Tile, Location, Displacement
     def __init__(self, x: Union[C, int], y: Optional[int] = None):
         self.parent: Optional[C] = None  # For BFS
@@ -492,7 +479,7 @@ class Y:  # Inventory
 
 
 class Locatable:  # Used by: [Unit, GameObject, DroppedItem]
-    def __init__(self, location: C):
+    def __init__(self, location: C, game: Inspectable):
         self.follow_type: C = D.B
         self.follow_allow_under: bool = False
         self.location: C = location.copy()  # It changes, it needs to be a copy.
@@ -500,9 +487,9 @@ class Locatable:  # Used by: [Unit, GameObject, DroppedItem]
         # I know this looks ugly, but this is how we'll be able to find Locatables
         # from our interface in order to draw them.
         self.uuid: int = id(self)
-        global G
-        G.locatables.append(self)
-        G.uuids.append(self.uuid)
+        self.game = game
+        self.game.locatables.append(self)
+        self.game.uuids.append(self.uuid)
 
     def is_followable(self) -> bool:
         # Dead NPCs are not followable.
@@ -517,7 +504,13 @@ class Inspectable:
     # This interface also has a nice function for stalling actions.
     def __init__(self, arg):  # arg: Game
         self.arg = arg
+        self.locatables: List[Locatable] = []
+        self.uuids: List[int] = []
+
         self.text_payload = []  # An array of things printed by Wave and Npc objects. This is exhausted by an interface.
+
+    def find_by_uuid(self, uuid: int):
+        return self.locatables[self.uuids.index(uuid)]
 
     @property
     def wave(self):

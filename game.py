@@ -31,22 +31,21 @@ class Wave:
         self.number: int = wave_number
         self.penance: Penance = Penance(wave_number, self.game)
         self.dispensers = {
-            "a": AttackerDispenser(),
-            "d": DefenderDispenser(),
-            "h": HealerDispenser(),
-            "c": CollectorDispenser(),
+            "a": AttackerDispenser(self.game),
+            "d": DefenderDispenser(self.game),
+            "h": HealerDispenser(self.game),
+            "c": CollectorDispenser(self.game),
         }
 
         # Currently, these are three different lists instead of a list of type List[DroppedItem] to ease processing.
         self.dropped_food: List[Food] = []
         self.dropped_eggs: List[Egg] = []
         self.dropped_hnls: List[Union[Hammer, Logs]] = [  # The term hnl will be used to indicate hammer and logs.
-            # TODO: BUILD handle logs and hammer respawns.
-            Hammer(), Logs(Logs.NEAR), Logs(Logs.FAR)
+            Hammer(self.game), Logs(Logs.NEAR, self.game), Logs(Logs.FAR, self.game)
         ]
         self.hnl_flags = 0b000
 
-        self.game_objects: GameObjects = GameObjects()
+        self.game_objects: GameObjects = GameObjects(self.game)
         self.start_tick: int = tick
         self.correct_calls: Dict[str, Optional[int]] = {
             "a": None, "c": None, "d": None, "h": None,
@@ -77,11 +76,11 @@ class Wave:
         if tick % Wave.CYCLE == 0:
             # If we need to spawn hammer or logs, we do.
             if self.hnl_flags & Wave.SPAWN_HAMMER:
-                self.dropped_hnls.append(Hammer())
+                self.dropped_hnls.append(Hammer(self.game))
             if self.hnl_flags & Wave.SPAWN_NEAR_LOGS:
-                self.dropped_hnls.append(Logs(Logs.NEAR))
+                self.dropped_hnls.append(Logs(Logs.NEAR, self.game))
             if self.hnl_flags & Wave.SPAWN_FAR_LOGS:
-                self.dropped_hnls.append(Logs(Logs.FAR))
+                self.dropped_hnls.append(Logs(Logs.FAR, self.game))
 
             self.hnl_flags = 0b000
 

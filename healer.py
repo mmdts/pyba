@@ -38,6 +38,7 @@ class Healer(Npc):
         super().__init__(wave_number, E.PENANCE_HEALER_SPAWN, game, name)
         self.target_state: int = Healer.TARGETING_PLAYER  # It swaps on call of Healer.switch_target.
 
+        self.in_initial_state: bool = True
         self.followee: Optional[Union[Player, Runner]] = None
         self.poison_i = 1
         self.poison_start_tick = 0
@@ -59,6 +60,13 @@ class Healer(Npc):
             self.poison_i -= 1
             self.hitpoints -= self.poison_damage
 
+        # This entire condition is debug.
+        if self.followee is None:
+            debug("Healer.do_cycle",
+                  f"{self} checking condition with "
+                  f"self.is_still_static = {self.is_still_static} and self.destination = {self.destination} and "
+                  f"self.no_follow_i = {self.no_follow_i} and self.no_random_walk_i = {self.no_random_walk_i}.")
+
         # START: THIS PART IS ALMOST TICK PERFECT.
         # Keep following -> reaching forever.
 
@@ -72,13 +80,11 @@ class Healer(Npc):
         # We finally use the lazy "or" to follow if we found something to follow.
         # If we either aren't allowed to follow or haven't found something to follow when we tried to,
         # we try to random walk.
-        if self.followee is None:
-            debug("Healer.do_cycle",
-                  f"{self} checking condition with "
-                  f"self.is_still_static = {self.is_still_static} and self.destination = {self.destination} and "
-                  f"self.no_follow_i = {self.no_follow_i} and self.no_random_walk_i = {self.no_random_walk_i}.")
-
-        if self.followee is None and (self.no_follow_i != 0 or not self.switch_followee()):
+        # If we're not following anything and,
+        # either we're not allowed to follow or we can't find anything to follow.
+        if self.followee is None and \
+                (self.no_follow_i != 0 or not self.switch_followee()) and \
+                not self.in_initial_state:
             debug("Healer.do_cycle", f"{self} will attempt to random walk because condition is true.")
             self.set_random_walk_destination()
             if self.no_follow_i > 0:
@@ -87,6 +93,7 @@ class Healer(Npc):
 
         self.step()
 
+        # This entire condition is debug.
         if self.followee is not None:
             debug("Healer.do_cycle",
                   f"{self} {self.can_act_on(self.followee) and 'can act' or 'cant act'} on {self.followee}.")
@@ -106,6 +113,7 @@ class Healer(Npc):
         if self.followee is not None:
             debug("Healer.switch_followee", f"{self} decided to follow {self.followee}.")
             self.follow(self.followee, (self.switch_followee_state_and_heal_if_runner, (self.followee,), {}))
+            self.in_initial_state = False
             return True
 
         return False

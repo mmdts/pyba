@@ -4,7 +4,7 @@ from random import random
 from typing import Optional, List
 
 from dispenser import Dispenser
-from log import debug, J, C as LOG_C
+from log import debug, J, C as LOG_C, game_print
 from terrain import Terrain, C, Inspectable, Y, Locatable, D
 from unit import Unit
 
@@ -63,6 +63,14 @@ class Player(Unit):
 
     def str_info(self) -> str:
         return f"{LOG_C}{self.name:<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
+
+    def print(self, *args, **kwargs):
+        game_print("Player.print", f"{self}", *args, **kwargs)
+        self.game.text_payload.append(
+            " ".join([str(arg) for arg in (
+                f"{self.uuid}|", *args
+            )])
+        )
 
     @staticmethod
     @abstractmethod

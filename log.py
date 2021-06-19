@@ -70,6 +70,7 @@ ALLOWED_GAME_PRINT_NAMESPACES: Dict[str, Optional[int]] = {
     # "Game.print_map": None,
     # "Game.print_runners": None,
     "Penance.print": Y,
+    "Player.print": Y,
     "Wave.print": Y,
     # "Terrain.print": None,
 }

@@ -6,6 +6,7 @@ from game_object import Trap, WEGameObject
 from log import debug, M, J
 from terrain import C, E, Inspectable, Y, Terrain, Action
 from player import Player
+from healer import Healer as PenanceHealer
 
 # Gear bonuses are on the form of (accuracy, damage, set bonus, attack speed, range)
 Stats = Tuple[int, int, int, int]
@@ -93,26 +94,26 @@ class Defender(Player):
 
         self.busy_i = Player.DISPENSER_BUSY_WAIT
 
-    def drop_food(self, food_type: int, count: int, correct_call: int, food_list: List[Food]) -> None:
+    def drop_food(self, food_type: int, count: int) -> None:
         assert str(food_type) in self.inventory, "We cannot drop food we do not have."
         assert food_type < self.CALL_COUNT, "We cannot drop things that aren't food."
         for i in range(count):
-            food_list.append(Food(
+            self.game.wave.dropped_food.append(Food(
                 self.location,
                 food_type,
-                food_type == correct_call,
+                food_type == self.correct_call,
                 self.game
             ))
             self.inventory[self.inventory.index(str(food_type))] = Y.EMPTY
 
-    def drop_select_food(self, inventory_slots: List[int], correct_call: int, food_list: List[Food]) -> None:
+    def drop_select_food(self, inventory_slots: List[int]) -> None:
         for slot in inventory_slots:
             if self.inventory[slot] not in [Y.CRACKERS, Y.TOFU, Y.WORMS]:
                 continue
-            food_list.append(Food(
+            self.game.wave.dropped_food.append(Food(
                 self.location,
                 int(self.inventory[slot]),
-                int(self.inventory[slot]) == correct_call,
+                int(self.inventory[slot]) == self.correct_call,
                 self.game
             ))
             self.inventory[slot] = Y.EMPTY
@@ -175,12 +176,12 @@ class Defender(Player):
         # We queue action because, afaik, dropping food drops it on the next tick rather than instantly.
         if str(which) not in self.inventory:
             return False
-        self.drop_food(which, count, self.correct_call, self.game.wave.dropped_food)
+        self.drop_food(which, count)
         return True
 
     def click_drop_select_food(self, inventory_slots: List[int]) -> bool:
         # We queue action because, afaik, dropping food drops it on the next tick rather than instantly.
-        self.drop_select_food(inventory_slots, self.correct_call, self.game.wave.dropped_food)
+        self.drop_select_food(inventory_slots)
         return True
 
     def click_repair_trap(self, which: int = WEGameObject.EAST) -> bool:
@@ -242,6 +243,22 @@ class Healer(Player):
                     alternator_i = (alternator_i + 1) % len(alternator)
 
         self.busy_i = Player.DISPENSER_BUSY_WAIT
+
+    def use_poison_food(self, which: int, healer: PenanceHealer):
+        assert str(which) in self.inventory, "We cannot use poison food we do not have."
+        assert which < self.CALL_COUNT, "We cannot use things that aren't poison food."
+        if which == self.correct_call:
+            healer.apply_poison()
+        else:
+            self.print("Incorrect poison food.")
+        self.inventory[self.inventory.index(str(which))] = Y.EMPTY
+
+    def click_use_poison_food(self, which: int, healer: PenanceHealer):
+        if not self.location.renders_unit(healer):
+            return False
+        self.follow(healer, (self.use_poison_food, (which, healer), {}))
+        self.move(self.destination)
+        return True
 
 
 class Collector(Player):

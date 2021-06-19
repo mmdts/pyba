@@ -75,7 +75,7 @@ class Npc(Unit):
         game_print("Penance.print", f"{self}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
-                "PENANCE::", f"{self}", *args
+                f"{self.uuid}|", *args
             )])
         )
 

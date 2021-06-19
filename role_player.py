@@ -91,7 +91,7 @@ class Defender(Player):
                 self.inventory[key] = alternator[alternator_i]
                 alternator_i = (alternator_i + 1) % len(alternator)
 
-        self.busy_i = 1  # TODO: CHECK if dispenser stalls from research/wave_breakdown.txt!
+        self.busy_i = Player.DISPENSER_BUSY_WAIT
 
     def drop_food(self, food_type: int, count: int, correct_call: int, food_list: List[Food]) -> None:
         assert str(food_type) in self.inventory, "We cannot drop food we do not have."
@@ -205,6 +205,7 @@ class Defender(Player):
 
 class Healer(Player):
     INVENTORY_SPACE: int = 26  # Horn, vial.
+    FOOD_PER_OVERSTOCK: int = 5
 
     TOFU, WORMS, MEAT = 0, 1, 2
     CALLS = ["tofu", "worms", "meat"]
@@ -216,6 +217,31 @@ class Healer(Player):
     @staticmethod
     def access_letter() -> str:
         return "h"
+
+    def use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
+        self._use_dispenser(dispenser, option)
+
+        alternator_i = 0
+        alternator = [Y.POISON_TOFU, Y.POISON_WORMS, Y.POISON_MEAT]
+
+        if option is not None and option != Dispenser.DEFAULT_STOCK and option in alternator:
+            overstock_i = 0
+            for key, slot in enumerate(self.inventory):
+                if slot == Y.EMPTY:
+                    self.inventory[key] = alternator[option]
+                    overstock_i += 1
+                    if overstock_i == Healer.FOOD_PER_OVERSTOCK:
+                        break
+        else:
+            for key, slot in enumerate(self.inventory):
+                if slot == Y.EMPTY:
+                    if Y.VIAL not in self.inventory:
+                        self.inventory[key] = Y.VIAL
+                        continue
+                    self.inventory[key] = alternator[alternator_i]
+                    alternator_i = (alternator_i + 1) % len(alternator)
+
+        self.busy_i = Player.DISPENSER_BUSY_WAIT
 
 
 class Collector(Player):

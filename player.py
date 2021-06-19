@@ -32,6 +32,8 @@ class Player(Unit):
     INVENTORY_SPACE: int = 28
     CALL_COUNT: int = 3
 
+    DISPENSER_BUSY_WAIT: int = 1  # TODO: CHECK if dispenser stalls from research/wave_breakdown.txt!
+
     def __init__(self, location: C, game: Inspectable):
         super().__init__(location, game)
         self.is_running: bool = True

@@ -44,7 +44,7 @@ class Npc(Unit):
         self.is_still_static: bool = True
         self.no_random_walk_i: int = 0  # The time it would've taken to reach the destination.
 
-    def __call__(self):
+    def __call__(self) -> bool:
         self.cycle += 1  # Cycle starts at 1 and ends at 0 after 9.
         self.cycle %= self.CYCLE_COUNT
 
@@ -71,7 +71,7 @@ class Npc(Unit):
     def str_info(self) -> str:
         return f"{LC}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, _)@{self.location}{J}"
 
-    def print(self, *args, **kwargs):
+    def print(self, *args, **kwargs) -> None:
         game_print("Penance.print", f"{self}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
@@ -80,7 +80,7 @@ class Npc(Unit):
         )
 
     @abstractmethod
-    def do_cycle(self) -> Optional[bool]:
+    def do_cycle(self) -> None:
         # All Npcs call do_cycle during their usual call procedure if they're alive.
         # All Npcs return what do_cycle returns, but since no action despawns non-runner Npcs other than dying and
         # despawning naturally, only runners should ever return False in their do_cycle (as part of the escape
@@ -148,7 +148,7 @@ class Npc(Unit):
 
     @property
     @abstractmethod
-    def choice_arg(self):
+    def choice_arg(self) -> List[Locatable]:
         raise NotImplementedError("Specific Npc species should override this function to specify what they follow.")
 
     def set_random_walk_destination(self) -> None:
@@ -204,4 +204,4 @@ class Npc(Unit):
         # This method is called if the single step fails.
         # Tile argument is present even though it's never used because the calling function
         # provides it, and we need to receive it.
-        pass
+        return

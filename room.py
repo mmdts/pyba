@@ -37,7 +37,7 @@ class Room:
         if self.mode == Room.DELAY or self.mode == Room.F_FWD:
             assert self.thread is None, "You tried calling the room when the thread already exists!"
 
-            def run(room: Room):
+            def run(room: Room) -> None:
                 while True:  # TODO: Multiple connections, multiple games.
                     assert room.is_alive, "Room died. This exception is meant to kill the thread."
 
@@ -59,7 +59,7 @@ class Room:
         if self.mode == Room.PAUSE:
             self.iterate()
 
-    def iterate(self):
+    def iterate(self) -> None:
         assert self.is_alive, "Room died. Please start a new one."
         self.exhaust_queue()
         if self.game.wave is not None:
@@ -73,7 +73,7 @@ class Room:
 
             self.transmit()
 
-    def transmit(self):
+    def transmit(self) -> None:
         # Should provide a full game state, ending on something that's Transmittable.
         rv = json.dumps({
             "game": build_transmittable_object_from(self.game.inspectable),
@@ -99,17 +99,17 @@ class Room:
         else:
             self()
 
-    def accept_player_connection(self, client_id: str, role: str):
+    def accept_player_connection(self, client_id: str, role: str) -> None:
         assert role in self.clients_by_role.keys(), "Please choose a valid role when connecting to the room."
         assert self.clients_by_role[role] is None, \
             f"A player ({self.clients_by_role[role]}) is already assigned to the role {role}."
         self.clients_by_role[role] = client_id
         self.clients_by_id[client_id] = len(self.clients_by_id) == 0  # Set only the first player to True.
 
-    def add(self, action: Callable, *args, **kwargs):
+    def add(self, action: Callable, *args, **kwargs) -> None:
         self.player_action_queue.append((action, args, kwargs))
 
-    def exhaust_queue(self):
+    def exhaust_queue(self) -> None:
         while len(self.player_action_queue) > 0:
             item = self.player_action_queue.pop(0)
             item[0](*item[1], **item[2])

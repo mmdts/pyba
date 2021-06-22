@@ -170,14 +170,14 @@ class C:  # Tile, Location, Displacement
         assert isinstance(other, int), "Cannot divide by something that isn't an int."
         return self.__class__(self.x // other, self.y // other)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> C:
         return self.__mul__(other)
 
-    def compare_assert(self, other: int):
+    def compare_assert(self, other: int) -> None:
         assert self.is_difference, "Only length intervals and not actual tiles can be compared."
         assert isinstance(other, int), "Type C can only be compared to an int."
 
-    def step_assert(self):
+    def step_assert(self) -> None:
         assert self.is_difference, "Steps can only be taken from a difference."
 
     def __lt__(self,  other: int) -> bool:
@@ -196,7 +196,7 @@ class C:  # Tile, Location, Displacement
         self.compare_assert(other)
         return abs(self.x) >= other and abs(self.y) >= other
 
-    def copy(self):
+    def copy(self) -> C:
         # Copy is great because it doesn't copy over parent and is_difference, unlike
         # initializing a C from this C.
         return self + D.X
@@ -230,11 +230,11 @@ class C:  # Tile, Location, Displacement
         d = self - other
         return max(abs(d.x), abs(d.y))
 
-    def is_aligned_with(self, other: C):
+    def is_aligned_with(self, other: C) -> bool:
         assert isinstance(other, self.__class__), "Cannot check alignment to something that isn't of type C."
         return self.x == other.x or self.y == other.y
 
-    def is_southwest_of(self, other: C):
+    def is_southwest_of(self, other: C) -> bool:
         # Returns true on equality as well.
         return self.x <= other.x and self.y >= other.y
 
@@ -509,11 +509,11 @@ class Inspectable:
 
         self.text_payload = []  # An array of things printed by Wave and Npc objects. This is exhausted by an interface.
 
-    def find_by_uuid(self, uuid: int):
+    def find_by_uuid(self, uuid: int) -> Locatable:
         return self.locatables[self.uuids.index(uuid)]
 
     @property
-    def wave(self):
+    def wave(self):  # -> Wave
         assert self.arg.wave is not None and self.arg.wave.__class__.__name__ == "Wave", \
             "Wave is not set on this inspectable."
         return self.arg.wave
@@ -522,13 +522,13 @@ class Inspectable:
         return self.arg.start_new_wave(wave_number, runner_movements)
 
     @property
-    def tick(self):
+    def tick(self) -> int:
         assert self.arg.tick is not None and isinstance(self.arg.tick, int), \
             "Tick is not set on this inspectable."
         return self.arg.tick
 
     @property
-    def players(self):
+    def players(self):  # -> Players
         assert self.arg.players is not None and self.arg.players.__class__.__name__ == "Players", \
             "Players is not set on this inspectable."
         return self.arg.players
@@ -579,7 +579,7 @@ class Terrain:
         game_print("Terrain.print", "\n", rv)
 
     @staticmethod
-    def queue_info(queue: Union[Deque, List]):
+    def queue_info(queue: Union[Deque, List]) -> str:
         # Takes a dequeue / list of something printable (with __str__ defined).
         rv = "["
         for tile in queue:

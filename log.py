@@ -43,12 +43,14 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Defender.click_repair_trap": B,
     # "Defender.repair_trap": B,
 
+    "Healer.use_poison_food": G,
+
     # "Player.__call__": C,  # The busy wait.
     # "Player.path": C,
     "Player.move": C,
     # "Player.move.pathing_queue": C,
     # "Player.single_step": C,
-    "Unit.exhaust_pmac": C,
+    "Unit.act": C,
     # "Npc.__call__": LC,
 
     # "Runner.do_cycle": LB,
@@ -58,11 +60,12 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Runner.tick_target": LB,
     # "Runner.walk": LB,
 
-    "Healer.heal": LG,
     "Healer.do_cycle": LG,
-    "Healer.switch_target": LG,
-    "Healer.single_step": G,
-    "Healer.on_reach": LG,
+    # "Healer.do_cycle.r": LG,
+    # "Healer.do_cycle.f": LG,
+    # "Healer.switch_followee": LG,
+    # "Healer.single_step": G,
+    # "Healer.on_reach": LG,
 }
 
 

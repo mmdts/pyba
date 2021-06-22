@@ -12,7 +12,7 @@ import interface
 # import test  # Please comment this import out if not testing.
 
 
-def main():
+def main() -> None:
     try:
         interface.server.run(interface.app)
     except (KeyboardInterrupt, TypeError, AssertionError, AttributeError, OSError, NotImplementedError, KeyError) as e:

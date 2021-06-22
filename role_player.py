@@ -188,7 +188,7 @@ class Defender(Player):
         trap = self.game.wave.game_objects.traps[which]
         debug("Defender.click_repair_trap", f"Click repair trap on trap {which} -> {trap}.")
         if not self.location.renders_game_object(trap):
-            debug("Defender.click_repair_trap", f"We cannot render the trap.")
+            debug("Defender.click_repair_trap", f"{self} cannot render the trap {trap}.")
             return False
         self.follow(trap, (self.repair_trap, (trap,), {}))
         debug("Defender.click_repair_trap",
@@ -253,7 +253,7 @@ class Healer(Player):
             self.print("Incorrect poison food.")
         self.inventory[self.inventory.index(str(which))] = Y.EMPTY
 
-    def click_use_poison_food(self, which: int, healer: PenanceHealer):
+    def click_use_poison_food(self, which: int, healer: PenanceHealer) -> bool:
         if not self.location.renders_unit(healer):
             return False
         self.follow(healer, (self.use_poison_food, (which, healer), {}))

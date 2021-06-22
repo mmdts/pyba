@@ -57,14 +57,14 @@ class Player(Unit):
         return True
 
     @property
-    def name(self):
+    def name(self) -> str:
         # Currently used only for printing.
         return self.__class__.__name__
 
     def str_info(self) -> str:
         return f"{LOG_C}{self.name:<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
-    def print(self, *args, **kwargs):
+    def print(self, *args, **kwargs) -> None:
         game_print("Player.print", f"{self}", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (
@@ -228,11 +228,11 @@ class Player(Unit):
         self.game.wave.calls[self.calls_with.access_letter()] = value
 
     @property
-    def received_call(self):
+    def received_call(self) -> int:
         return self.game.wave.calls[self.access_letter()]
 
     @property
-    def correct_call(self):
+    def correct_call(self) -> int:
         # Required to USE!
         return self.game.wave.correct_calls[self.access_letter()]
 

@@ -89,7 +89,7 @@ class Penance:
         return self.count_alive() != 0 or self.count_reserves() != 0
 
     # Key is the one letter yield string that represents the penance species.
-    def can_spawn(self, key: Union[Type, list, int, str]):
+    def can_spawn(self, key: Union[Type, list, int, str]) -> bool:
         key = self._get_letter(key)
         if self.get_due_to_spawn(key):
             return True
@@ -173,7 +173,7 @@ class Penance:
             rv += self.spawns[key][1]
         return rv
 
-    def set_runner_movements(self, movements: List[List[C]]):
+    def set_runner_movements(self, movements: List[List[C]]) -> None:
         for i, runner in enumerate(movements):
             self.runner_movements.append([])
             for movement in runner:

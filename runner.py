@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 
 from game_object import Trap
 from log import debug, J, LB
-from terrain import Terrain, C, D, E, Inspectable
+from terrain import Terrain, C, D, E, Inspectable, Locatable
 from npc import Npc
 from dropped_item import Food
 
@@ -45,8 +45,7 @@ class Runner(Npc):
     def str_info(self) -> str:
         return f"{LB}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {self.target_state})@{self.location}{J}"
 
-    def do_cycle(self) -> Optional[bool]:
-        # Runner do_cycle does not call self.unit_call because runners do not path normally or attack.
+    def do_cycle(self) -> None:
         if self.has_chomped:
             self.urgh_raa_i -= 1
             if self.urgh_raa_i == 0:
@@ -224,9 +223,9 @@ class Runner(Npc):
         return D.S
 
     @property
-    def choice_arg(self):
+    def choice_arg(self) -> List[Locatable]:
         # Runners choose a food using special mechanics.
-        return None
+        return []
 
     def walk(self) -> C:
         if self.location == E.RUNNER_REDIRECT_1:

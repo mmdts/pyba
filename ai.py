@@ -72,7 +72,7 @@ class Ai:
         # TODO: BUILD Player.inspect_* and remove usage of game in AI. ||| and self.player.inspect_*.
         self.player: Optional[Player] = None
 
-    def __call__(self, tick: int):
+    def __call__(self, tick: int) -> bool:
         pass
 
 
@@ -83,7 +83,7 @@ class RuleBasedAi(Ai):
         super().__init__(game)
         self.current_action: int = A.IDLE
 
-    def __call__(self, tick: int):
+    def __call__(self, tick: int) -> bool:
         # AI calls on even ticks if it hasn't sent a call. It realizes it messed up on even ticks too.
         if self.player.sent_call != self.player.required_call and tick % 2 == 0:
             self.player.click_call()

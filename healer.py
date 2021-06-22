@@ -55,14 +55,14 @@ class Healer(Npc):
         return f"{LG}{self.name:<11}({self.game.tick:0>3}, {self.cycle}, {letter})" \
                f"@{self.location} -> HP: {self.hitpoints}{J}"
 
-    def do_cycle(self):
+    def do_cycle(self) -> None:
         if (self.game.wave.relative_tick - self.poison_start_tick) % 5 == 0 and self.is_poisoned():
             self.poison_i -= 1
             self.hitpoints -= self.poison_damage
 
         # This entire condition is debug.
         if self.followee is None:
-            debug("Healer.do_cycle",
+            debug("Healer.do_cycle.f",
                   f"{self} checking condition with "
                   f"self.is_still_static = {self.is_still_static} and self.destination = {self.destination} and "
                   f"self.no_follow_i = {self.no_follow_i} and self.no_random_walk_i = {self.no_random_walk_i}.")
@@ -85,13 +85,14 @@ class Healer(Npc):
         if self.followee is None and \
                 (self.no_follow_i != 0 or not self.switch_followee()) and \
                 not self.in_initial_state:
-            debug("Healer.do_cycle", f"{self} will attempt to random walk because condition is true.")
+            debug("Healer.do_cycle.r", f"{self} will attempt to random walk because condition is true.")
             self.set_random_walk_destination()
             if self.no_follow_i > 0:
                 self.no_follow_i -= 1
         # END
 
         self.step()
+        debug("Healer.do_cycle", f"{self}")
 
         # This entire condition is debug.
         if self.followee is not None:
@@ -132,7 +133,7 @@ class Healer(Npc):
         self.no_follow_i = Healer.NO_FOLLOW_DELAYS[self.target_state]
 
     @property
-    def choice_arg(self):
+    def choice_arg(self) -> Union[List[Player], List[Runner]]:
         return self.target_state == Healer.TARGETING_PLAYER and \
                self.game.players.get_iterable() or self.game.wave.penance.runners
 

@@ -14,8 +14,8 @@ class Unit(Locatable):
     # Therefore, instead of complex checks, if I want to keep out, I'll check for SAFE_ACTION_DISTANCE,
     # and if I want to be in, I'll check for ACTION_DISTANCE (guarantees being in regardless of orientation).
     # Action distance is inclusive (compared with <= or >=)
-    ACTION_DISTANCE = 15
-    SAFE_ACTION_DISTANCE = 16
+    ACTION_DISTANCE: int = 15
+    SAFE_ACTION_DISTANCE: int = 16
 
     # ONLY click_ AND inspect_ METHODS AND __init__ AND __call__ SHOULD USE THE self.game VARIABLE!!
     # All other methods should be passed the parameters they need explicitly!
@@ -40,7 +40,7 @@ class Unit(Locatable):
     def str_info(self) -> str:
         return f"{LOG_C}{'Unnamed':<11}({self.game.tick:0>3}, _, _)@{self.location}{J}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.str_info()
 
     def exhaust_pmac(self, wait_only: bool):
@@ -101,7 +101,7 @@ class Unit(Locatable):
     def is_outside_action_distance_of(self, target) -> bool:  # target: Penance
         return not target.is_alive() or target.location - self.location > Unit.SAFE_ACTION_DISTANCE
 
-    def can_see(self, target: Locatable):
+    def can_see(self, target: Locatable) -> bool:
         return self.location.can_see(target.location)
 
     def get_closest_adjacent_square_to(self, target: Locatable) -> C:
@@ -149,7 +149,7 @@ class Unit(Locatable):
         self.destination = destination
         return True
 
-    def stop_movement(self, clear_destination: bool = False, clear_follow: bool = False):
+    def stop_movement(self, clear_destination: bool = False, clear_follow: bool = False) -> None:
         if not clear_destination and not clear_follow:
             # A stop movement command called without any arguments should clear both.
             clear_destination = True

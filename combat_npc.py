@@ -30,7 +30,7 @@ class CombatNpc(Npc):
                f"@{self.location} -> HP: {self.hitpoints}{J}"
 
     # Damage is taken in the player attack call.
-    def do_cycle(self) -> Optional[bool]:
+    def do_cycle(self) -> None:
         tick = self.game.wave.relative_tick
 
         # Retaliate (change followee and follow) if not "reached" player and got attacked.
@@ -56,8 +56,11 @@ class CombatNpc(Npc):
         return
 
     @property
-    def choice_arg(self):
+    def choice_arg(self) -> List[Player]:
         return self.game.players.get_iterable()
+
+    def do_nothing(self):
+        return
 
 
 class Fighter(CombatNpc):

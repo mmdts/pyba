@@ -4,11 +4,8 @@
  *       Add SCRIPTING.
  *       Make other 3 players bots.
  *       Build bots.
- *       Add checkbox to make self bot (spectate mode).
- *       Add change wave / (re)start wave option.
- *       Add tick duration definition, and ticking.
+ *       Allow spectator to start room, and check that it works fine with everything else.
  *       Add help button and overlay (click hammer for repair trap, etc).
- *       Add call right click menu at the other side.
  *       Build the info log at the bottom.
  *
  * TODO: BUILD
@@ -30,6 +27,7 @@ const $sideWaveNumber = $("#number");
 const $sideWaveTick = $("#tick");
 const $sideCallsSent = $("#sent");
 const $sideCallsReceived = $("#received");
+const $sideCallsCorrect = $("#correct")
 const $sideCallsRequired = $("#required");
 const $sideTrap = $("#trap");
 
@@ -186,7 +184,8 @@ function initializeSide () {
         $sideWaveNumber.text(`Wave: ${+(window.iface?.game?.wave?.number ?? -1) + 1}`);
         $sideWaveTick.text(`Tick: ${window.iface?.game?.wave?.relative_tick ?? ""}`);
         $sideTrap.text(`Trap Charges: ${window.iface?.game?.wave?.game_objects?.trap?.charges ?? ""}`);
-        $sideCallsReceived.text(`${g("received_call")} (Correct: ${g("correct_call")})`);
+        $sideCallsReceived.text(`${g("received_call")}`);
+        $sideCallsCorrect.text(`(Correct: ${g("correct_call")})`);
         $sideCallsRequired.text(g("required_call"));
         $sideCallsSent.text(g("sent_call"));
 }

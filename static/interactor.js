@@ -46,6 +46,10 @@ export class Interactor {
             throw "Attacker equips items, but is not implemented yet.";
         }
 
+        if (this.interface.role === "c") {
+            throw "Collector loads eggs, but is not implemented yet.";
+        }
+
         if (this.interface.role === "d") {
             if (["0", "1", "2"].includes(item)) {
                 let display = `inventory_${this.interface.role}_${item}`;
@@ -55,11 +59,14 @@ export class Interactor {
             }
         }
 
-        if (this.interface.role === "h" || this.interface.role === "c") {
-            return;
+        if (this.interface.role === "h") {
+            let display = `inventory_${this.interface.role}_${item}`;
+            let action = "click_idle";  // Examine.
+            let args = [];
+            this.actionList.push({ display, action, args });
             // Currently, there's no need whatsoever to highlight items.
             // Clicking on the egg will load it to the nearest hopper.
-            // Clicking on the food will use it on the nearest healer.
+            // Clicking on the food will do nothing.
             // Clicking on a healer will use a right food (or guess) on it.
             // Clicking on the hopper will load eggs just like the real game functions.
 
@@ -123,6 +130,8 @@ export class Interactor {
     };
 
     processMapClickNpc (c, x, y) {
+        let is_attacker = ["a", "s"].includes(this.interface.role);
+
         if (this.interface.penancePerGameTile["d"][y][x].length > 0) {
             for (let runner of this.interface.penancePerGameTile["d"][y][x]) {
                 let display = "map_d_runner";
@@ -131,22 +140,34 @@ export class Interactor {
                 this.postMoveActionList.push({ display, action, args });
             }
         }
+
         if (this.interface.penancePerGameTile["h"][y][x].length > 0) {
+            let is_healer = this.interface.role === "h";
+            let correct_call = this.interface.player.correct_call;
             for (let healer of this.interface.penancePerGameTile["h"][y][x]) {
-                console.log("THIS HAPPENS")
-                let display = "map_h_healer";
-                let action = "click_idle";
-                let args = [];
+                let display = is_healer ? `map_h_use_${correct_call}` : "map_h_healer";
+                let action = is_healer ? "click_use_poison_food" : "click_idle";
+                let args = is_healer ? [correct_call, healer.uuid] : [];
                 this.postMoveActionList.push({ display, action, args });
             }
         }
 
-        if (this.interface.role === "a" || this.interface.role === "s") {
-            // TODO: Loop over combat npcs within this tile, then add an attack order to actionList for each.
-            let display = "map_a_fighter";
-            let action = "click_attack";
-            let args = [x, y];
-            this.actionList.push({ display, action, args });
+        if (this.interface.penancePerGameTile["a"][y][x].length > 0) {
+            for (let fighter of this.interface.penancePerGameTile["a"][y][x]) {
+                let display = is_attacker ? "map_a_fighter" : "map_a_fighter_x";
+                let action = is_attacker ? "click_attack" : "click_idle";
+                let args = is_attacker ? [fighter.uuid] : [];
+                this.postMoveActionList.push({display, action, args});
+            }
+        }
+
+        if (this.interface.penancePerGameTile["s"][y][x].length > 0) {
+            for (let ranger of this.interface.penancePerGameTile["s"][y][x]) {
+                let display = is_attacker ? "map_a_ranger" : "map_a_ranger_x";
+                let action = is_attacker ? "click_attack" : "click_idle";
+                let args = is_attacker ? [ranger.uuid] : [];
+                this.postMoveActionList.push({ display, action, args });
+            }
         }
     };
 

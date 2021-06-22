@@ -74,15 +74,28 @@ export const MENU_ITEM_HEIGHT = 15;
 
 // Right click options
 export const RIGHT_CLICK_OPTIONS_ARRAY = [
+    // General Options
     "cancel", "back", "bottom", "right", "top_back", "top_front", "walk",
+    // Dispensers
     "map_d_disp_5", "map_a_disp_5", "map_c_disp_5", "map_h_disp_5", "map_h_disp_6",
     "map_h_disp_0", "map_h_disp_1", "map_h_disp_x", "map_h_disp_2",
+    // Game Objects
+    "map_d_trap_0", "map_d_trap_1",
+    // Ground Items
     "map_d_item_0", "map_d_item_1", "map_d_item_2", "map_d_item_3", "map_d_item_4",
     "map_c_item_0", "map_c_item_1", "map_c_item_2", "map_c_load", "map_cannon",
-    "map_a_fighter", "map_a_ranger", "inventory_d_h_2", "map_h_healer",
-    "map_d_trap_0", "map_d_trap_1", "inventory_d_h_b", "map_d_runner",
-    "inventory_d_0", "inventory_d_1", "inventory_d_2", "inventory_d_h_0",
-    "inventory_d_0_b", "inventory_d_1_b", "inventory_d_2_b", "inventory_d_h_1",
+    // Penance
+    "map_a_fighter", "map_a_ranger", "map_h_healer", "map_d_runner",
+    "map_a_fighter_x", "map_a_ranger_x",
+    "map_h_use_0", "map_h_use_1", "map_h_use_2",
+    // Defender Inventory
+    "inventory_d_h_0", "inventory_d_h_1", "inventory_d_h_2", "inventory_d_h_b",
+    "inventory_d_0", "inventory_d_1", "inventory_d_2",
+    "inventory_d_0_b", "inventory_d_1_b", "inventory_d_2_b",
+    // Healer Inventory
+    "inventory_h_h_0", "inventory_h_h_1", "inventory_h_h_2", "inventory_h_h_b",
+    "inventory_h_0", "inventory_h_1", "inventory_h_2", "inventory_h_3",
+    "inventory_h_0_b", "inventory_h_1_b", "inventory_h_2_b", "inventory_h_3_b",
 ];
 /** @type {string[]} */
 export const HEALER_DISPENSER_OPTIONS = ["5", "6", "0", "1", "x", "2"];  // In order!
@@ -166,6 +179,7 @@ export const ITEMS = {
     "h0": "items/h0.png",
     "h1": "items/h1.png",
     "h2": "items/h2.png",
+    "h3": "items/h3.png",
     "d0": "items/d0.png",
     "d1": "items/d1.png",
     "d2": "items/d2.png",

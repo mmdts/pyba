@@ -137,7 +137,7 @@ class Healer(Npc):
         return self.target_state == Healer.TARGETING_PLAYER and \
                self.game.players.get_iterable() or self.game.wave.penance.runners
 
-    def apply_poison(self):
+    def apply_poison(self) -> None:
         # Player Healer calls this function.
         if not self.is_poisoned():
             self.poison_start_tick = self.game.wave.relative_tick

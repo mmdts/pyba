@@ -49,7 +49,7 @@ class Penance:
         yield "d", self.runners
         yield "h", self.healers
 
-    def __call__(self, tick: int) -> bool:
+    def __call__(self) -> bool:
         # Handle penance tick actions by calling them.
         for key, species in self:
             for i, npc in enumerate(species):
@@ -78,13 +78,13 @@ class Penance:
 
         # Handle penance spawns every penance cycle (6s)
         # Spawning has to be handled after penance death, since a penance can die and another spawn in the same tick.
-        if tick % self.game.wave.CYCLE == 0 and tick > 0:
+        if self.game.wave.relative_tick % self.game.wave.CYCLE == 0 and self.game.wave.relative_tick > 0:
             for key, species in self:
                 # Spawning can be stalled, and is added through Game.stall.
                 # If there are still reserves and the current penance are less than the maximum available at a time.
                 if self.spawns[key][1] > 0 and self.can_spawn(key):
                     self.spawns[key][1] -= 1  # Decrease the reserve count.
-                    self.game.stall(self.spawn, species, tick)  # Spawn a new penance.
+                    self.game.stall((self.spawn, (species, self.game.wave.relative_tick), {}))  # Spawn a new penance.
 
         return self.count_alive() != 0 or self.count_reserves() != 0
 

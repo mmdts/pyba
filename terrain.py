@@ -533,8 +533,8 @@ class Inspectable:
             "Players is not set on this inspectable."
         return self.arg.players
 
-    def stall(self, action: Callable, *args, **kwargs):
-        self.arg.players.main_attacker.stall_queue.append((action, args, kwargs))
+    def stall(self, action: Action) -> None:
+        self.arg.players.main_attacker.stall_queue.append(action)
 
 
 class Targeting:

@@ -70,11 +70,11 @@ class Wave:
 
         # Call changes.
         if self.relative_tick % Wave.CALL == 1:
-            self.game.stall(self.change_call)
+            self.game.stall((self.change_call, (), {}))
 
         # If all the penance are dead and we're on a penance cycle.
         if not self.penance():
-            self.game.stall(self.end)
+            self.game.stall((self.end, (), {}))
 
         if self.relative_tick % Wave.CYCLE == 0:
             # If we need to spawn hammer or logs, we do.

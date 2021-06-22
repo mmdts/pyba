@@ -28,7 +28,7 @@ event_handler = EventHandler()
 
 
 @server.on('disconnect')
-def disconnect_handler():
+def disconnect_handler() -> None:
     if request.sid not in active_sids:  # The user closed the client before creating / joining a room.
         return
 
@@ -54,7 +54,7 @@ def disconnect_handler():
 
 
 @server.on("client_action")
-def on_client_action(message=None):
+def on_client_action(message=None) -> None:
     # This function is the roof of all exceptions. As no user code calls this function (Flask does), this function
     # has to internally handle all exceptions that arise from it, or from any part of the stack beneath it.
     try:
@@ -107,7 +107,7 @@ def on_client_action(message=None):
         raise e
 
 
-def is_valid_uuid(uuid_to_test, version=4):
+def is_valid_uuid(uuid_to_test, version=4) -> bool:
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:

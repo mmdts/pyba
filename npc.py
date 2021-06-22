@@ -1,9 +1,9 @@
 from random import randrange, choice, randint
 from abc import abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from log import game_print, debug, J, LC
-from terrain import Locatable, C, Inspectable, Targeting, Action, D
+from terrain import Locatable, C, Inspectable, Targeting, D
 from unit import Unit
 
 
@@ -48,15 +48,14 @@ class Npc(Unit):
         self.cycle += 1  # Cycle starts at 1 and ends at 0 after 9.
         self.cycle %= self.CYCLE_COUNT
 
-        if self.hitpoints == 0:  # TODO: BUILD Care for blue eggs here - in the far future.
-            self.state = Npc.DEAD
-
         if self.is_alive():
             if self.followee is not None:
                 debug("Npc.__call__", f"{self} is following {self.followee} and decided to refollow it.")
                 self.follow(self.followee)  # Re-follow a followee that might move.
             self.do_cycle()
-            return True
+            if self.hitpoints <= 0:
+                self.hitpoints = 0
+                self.state = Npc.DEAD
 
         if self.tick_despawn():
             return False  # Our return False (the condition for Npc removal in Penance.__call__).
@@ -90,10 +89,17 @@ class Npc(Unit):
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Npc.do_cycle.")
 
     def tick_despawn(self) -> bool:
-        # Reduces despawn countdown and returns true if it hits zero.
+        # Reduces despawn countdown and returns true if it hits -1.
         # To be used inside if conditions.
+        #
+        # Basically, the Npc starts with despawn_i = 2, and decrements once the same tick it dies.
+        # This means that an Npc with despawn_i = 1 is a dead Npc.
+        # Healers spawn instantly once dispawn_i hits 1, Runners spawn when despawn_i hits 0, and CombatNpcs
+        # when despawn_i hits -1.
+        if self.is_alive():
+            return False
         self.despawn_i -= 1
-        return self.despawn_i == 0
+        return self.despawn_i == -1
 
     def is_alive(self) -> bool:
         return self.state == Npc.ALIVE
@@ -167,25 +173,20 @@ class Npc(Unit):
             if self.no_random_walk_i < 2:
                 self.no_random_walk_i = 2  # For if we path right under ourselves / right beside ourselves.
 
-    def switch_followee(self, on_reach: Action = None) -> bool:
+    def switch_followee(self) -> bool:
         self.followee = Targeting.choice(self.choice_arg, self.location, Unit.ACTION_DISTANCE)
         if self.followee is not None:
-            self.follow(self.followee, on_reach)
+            self.follow(self.followee)
             return True
         self.set_random_walk_destination()
         return False
 
-    def follow(self, followee: Locatable, on_reach: Action = None) -> bool:
+    def follow(self, followee: Locatable) -> bool:
         assert self.can_see(followee) or self.followee == followee, \
             "Npcs can only follow targets they can see or are already following."
 
-        rv = super().follow(followee, on_reach)
-        if rv:
-            # To make sure pathing queue is not empty and PMAC does not get exhausted except when supposed to.
-            self.pathing_queue.append(self.destination)
-
         self.is_still_static = True
-        return rv
+        return super().follow(followee)
 
     def step(self) -> None:
         # We get a new tile using Npc.path (which gives only one tile) with no parents.

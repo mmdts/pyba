@@ -54,26 +54,26 @@ class Penance:
         for key, species in self:
             for i, npc in enumerate(species):
                 npc_still_spawned = npc()
-                if not npc.is_alive() and npc.despawn_i == npc.DUE_TO_SPAWN_TICKS:
+                if not npc.is_alive() and npc.despawn_i < npc.DUE_TO_SPAWN_TICKS:
                     self.game.wave.penance.set_due_to_spawn(npc.__class__, True)
-                if not npc_still_spawned:
-                    # Handle penance death part 1.
-                    species.pop(i)
-                    if not isinstance(npc, Runner) or not npc.has_escaped:
-                        self.game.wave.print(f"{npc.name} has been killed "
-                                             f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
-
-                    # Spawn eggs
-                    # TODO: BUILD Spawn eggs
-
                     # Handle penance extinction.
-                    if len(species) == 0 and self.spawns[key][1] == 0:
+                    none_alive = [n.is_alive() for n in species].count(True) == 0
+                    print(none_alive)
+                    if none_alive and self.spawns[key][1] == 0:
                         # In the real game, this message, along with the check for it, is stalled.
                         # Here, we want accurate statistics regardless of stall, so this message is always instant.
                         self.game.wave.print(f"All penance {npc.default_name.lower()}s have been killed "
                                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
+                        species = []  # Destroy the species completely.
 
-                    # Handle penance death part 2.
+                if not npc_still_spawned:
+                    # Handle penance death.
+                    species.pop(i)
+                    if not isinstance(npc, Runner) or not npc.has_escaped:
+                        self.game.wave.print(f"{npc.name} death animation finished "
+                                             f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
+                    # Spawn eggs
+                    # TODO: BUILD Spawn eggs
                     del npc
 
         # Handle penance spawns every penance cycle (6s)

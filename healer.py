@@ -4,9 +4,9 @@ from typing import List, Tuple, Union, Optional
 from log import debug, J, LG
 from player import Player
 from runner import Runner
-from terrain import E, Inspectable, Targeting, Action
+from terrain import E, Inspectable, Targeting, Terrain
 from npc import Npc
-from unit import Unit
+from unit import Unit, POST
 
 
 # This is VERY SIMPLE CODE that reproduces the "0 hitsplat" and "poison syncing" effects. It has to do with
@@ -43,6 +43,10 @@ class Healer(Npc):
         self.poison_i = 1
         self.poison_start_tick = 0
         self.no_follow_i: int = 0
+        self.actions.extend([
+            (Player, self.switch_followee_state, POST),
+            (Runner, self.switch_followee_state, POST),
+        ])
 
     def str_info(self) -> str:
         letter = self.target_state == Healer.TARGETING_RUNNER and 'R' or 'P'
@@ -92,18 +96,10 @@ class Healer(Npc):
         # END
 
         self.step()
+        self.act()
         debug("Healer.do_cycle", f"{self}")
 
-        # This entire condition is debug.
-        if self.followee is not None:
-            debug("Healer.do_cycle",
-                  f"{self} {self.can_act_on(self.followee) and 'can act' or 'cant act'} on {self.followee}.")
-
-        if len(self.pathing_queue) == 0 and self.can_act_on(self.followee):
-            # Healers reach and poison on the same tick.
-            self.exhaust_pmac(False)
-
-    def switch_followee(self, on_reach: Action = None) -> bool:
+    def switch_followee(self) -> bool:
         # On action is completely ignored here, as it is decided within the function to be
         # self.switch_target_state_and_heal_if_runner
         self.followee = Targeting.choice(
@@ -113,21 +109,21 @@ class Healer(Npc):
         )
         if self.followee is not None:
             debug("Healer.switch_followee", f"{self} decided to follow {self.followee}.")
-            self.follow(self.followee, (self.switch_followee_state_and_heal_if_runner, (self.followee,), {}))
+            self.follow(self.followee)
             self.in_initial_state = False
             return True
 
         return False
 
-    def switch_followee_state_and_heal_if_runner(self, followee):
+    def switch_followee_state(self) -> None:
         # To be used as the on_reach function.
         # The argument "followee" gets special handling in Healer.switch_followee, and does not need to be provided in
         # the Action's middle Tuple.
         self.target_state = (self.target_state + 1) % Healer.TARGET_STATE_COUNT
-        debug("Healer.on_reach", f"{self} reached {followee} "
+        debug("Healer.on_reach", f"{self} reached {self.followee} "
                                  f"and switched target state to {self.target_state}.")
-        if isinstance(followee, Runner):
-            followee.hitpoints = Runner.HITPOINTS[self.wave_number]
+        if isinstance(self.followee, Runner):
+            self.followee.hitpoints = Runner.HITPOINTS[self.wave_number]
 
         self.stop_movement(clear_follow=True)
         self.no_follow_i = Healer.NO_FOLLOW_DELAYS[self.target_state]

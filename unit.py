@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, List, Deque
+from typing import Optional, List, Deque, Tuple, Type, Callable
 from collections import deque
 
 from log import debug, J, C as LOG_C
-from terrain import Terrain, C, D, Locatable, Inspectable, Action
+from terrain import Terrain, C, D, Locatable, Inspectable
+
+PRE: bool = False
+POST: bool = True
 
 
 class Unit(Locatable):
@@ -27,9 +30,10 @@ class Unit(Locatable):
         self.destination: C = self.location.copy()  # It changes, it needs to be a copy.
         self.pathing_queue: Deque[C] = deque()
         # Using poison, using GameObjects, picking items, attacking.
-        self.post_move_action_queue: List[Action] = []  # A callable, its args, and its kwargs.
-        self.post_wait_action_queue: List[Action] = []
         self.is_running: bool = False
+
+        self.action_args: Tuple = ()
+        self.actions: List[Tuple[Type, Callable, bool]] = []
         assert self.location is not None, "Cannot create a unit without a location."
 
     @abstractmethod
@@ -42,30 +46,6 @@ class Unit(Locatable):
 
     def __str__(self) -> str:
         return self.str_info()
-
-    def exhaust_pmac(self, wait_only: bool):
-        # To prevent actions that queue more actions from forming an infinite loop.
-        # Also prevents actions queued by other actions from being performed on the same tick, rather than a tick later.
-        r = len(self.post_move_action_queue)
-        rf = len(self.post_wait_action_queue)
-
-        if not wait_only:
-            for i in range(r):
-                debug("Unit.exhaust_pmac", f"{self} exhausting a pmac entity.")
-                action, args, kwargs = self.post_move_action_queue.pop(0)
-                action(*args, **kwargs)
-
-        # Wait action queue is never reset by anything.
-        for i in range(rf):
-            debug("Unit.exhaust_pmac", f"{self} exhausting a forced pmac entity.")
-            action, args, kwargs = self.post_wait_action_queue.pop(0)
-            action(*args, **kwargs)
-
-    def queue_action(self, action: Action, forced: bool = False):
-        if forced:
-            self.post_wait_action_queue.append(action)
-        else:
-            self.post_move_action_queue.append(action)
 
     def can_single_step(self, destination: C) -> bool:
         return self.location.can_single_step(destination)
@@ -95,6 +75,24 @@ class Unit(Locatable):
         # This is the only condition that doesn't require sight.
         return target.location + target.follow_type == self.location
 
+    def act(self, act_mode: bool = POST) -> bool:
+        if self.followee is None or not self.can_act_on(self.followee):
+            return False
+
+        for locatable_type, action, action_mode in self.actions:
+            if not isinstance(self.followee, locatable_type) or action_mode != act_mode:
+                continue
+
+            try:
+                rv = action(*self.action_args)
+            except AssertionError as e:
+                rv = False
+                debug("Unit.act", f"{self} returned False due to the assertion: {str(e)}")
+
+            self.action_args = ()
+            self.stop_movement()
+            return rv
+
     def is_within_action_distance_of(self, target) -> bool:  # target: Penance
         return target.is_alive() and target.location - self.location <= Unit.ACTION_DISTANCE
 
@@ -119,7 +117,7 @@ class Unit(Locatable):
         # Player.path (smart pathfinding). You can check those instead for more details.
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Unit.path.")
 
-    def follow(self, followee: Locatable, on_reach: Action = None) -> bool:
+    def follow(self, followee: Locatable) -> bool:
         # Default follow behavior is persistent. Manually set followee to None to stop following.
         # Follow doesn't move you. It requires an explicit call to Player.move or Npc.step to move you.
         if not followee.is_followable():
@@ -136,9 +134,6 @@ class Unit(Locatable):
             destination = self.get_closest_adjacent_square_to(followee)
         else:
             destination = followee.location + followee.follow_type
-
-        if destination is not None and on_reach is not None:
-            self.queue_action(on_reach)
 
         self.followee = followee
         self.followee_last_found = followee.location

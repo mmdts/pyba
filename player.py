@@ -4,9 +4,10 @@ from random import random
 from typing import Optional, List
 
 from dispenser import Dispenser
+from dropped_item import DroppedItem
 from log import debug, J, C as LOG_C, game_print
 from terrain import Terrain, C, Inspectable, Y, Locatable, D
-from unit import Unit
+from unit import Unit, POST, PRE
 
 
 # All manual player actions should ideally start with the click_ prefix, and they are:
@@ -40,6 +41,11 @@ class Player(Unit):
         self.calls_with: Optional[Player] = None
         self.inventory: List[str] = [Y.HORN] + [Y.EMPTY] * (Player.INVENTORY_SPACE - 1)
         self.busy_i: int = 0
+        self.actions.extend([
+            (Dispenser, self.use_dispenser, PRE),
+            (DroppedItem, self.pick_item, PRE),
+            # Cannon
+        ])
         Terrain.block(self.location)
 
     def __call__(self) -> bool:
@@ -48,11 +54,14 @@ class Player(Unit):
             self.busy_i -= 1
             return True
 
-        # If there are still tiles left in the pathing queue, we only exhaust the wait queue, otherwise, we exhaust
-        # the move queue as well.
-        self.exhaust_pmac(len(self.pathing_queue) != 0)
+        if self.followee is not None:
+            debug("Player.__call__", f"{self} is following {self.followee} and decided to refollow it.")
+            self.follow(self.followee)  # Re-follow a followee that might move.
+            self.move(self.destination)
 
+        self.act(PRE)
         self.step()
+        self.act()
 
         return True
 
@@ -153,7 +162,7 @@ class Player(Unit):
         #
         # Any move command should overwrite any existing move commands.
         debug("Player.move", f"{self} fires a move.")
-        self.stop_movement()
+        self.stop_movement(clear_destination=True)
         self.destination = destination  # For other classes to know that we're pathing.
 
         # First, we do pathing.
@@ -166,7 +175,7 @@ class Player(Unit):
             destination = destination.parent
 
         if len(self.pathing_queue) == 0:
-            self.stop_movement()
+            self.stop_movement(clear_destination=True)
             debug("Player.move.pathing_queue", f"{self} tried to path but ended up with an empty pathing queue.")
             return
 
@@ -178,7 +187,7 @@ class Player(Unit):
         # This method is called if the single step fails.
         # Tile argument is present even though it's never used because the calling function
         # provides it, and we need to receive it.
-        self.post_move_action_queue.clear()
+        return
 
     def single_step(self) -> bool:
         # Players will unblock the tile they move from and block the tile they move to,
@@ -198,21 +207,25 @@ class Player(Unit):
 
         return location_changed
 
-    def _use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
+    def _use_dispenser(self, option: Optional[int] = None) -> None:
         # You self._use_dispenser() in all Player.use_dispenser implementations.
         # Previously, we used to run checks like self.location == E.DEFENDER_RESTOCK_SPOT
         # but right now, it's better to check for adjacency to the dispenser and entirely
         # refactor E.*_RESTOCK_SPOT variables out of the codebase.
-        assert self.can_act_on(dispenser), \
-            "Too far away to restock. Please only use the Player.use_dispenser function after following the dispenser."
         assert option is None or option is Dispenser.DEFAULT_STOCK or self.access_letter == "h", \
             "Only the healer can specify options when using the dispenser."
 
     @abstractmethod
-    def use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
+    def use_dispenser(self, option: Optional[int] = None) -> None:
         # Option is the various things you can do by right clicking the dispenser.
         # Option only makes sense for healer, as no other role has a reason to right click a dispenser.
         raise NotImplementedError(f"{self.__class__.__name__} needs to implement Player.click_use_dispenser.")
+
+    @abstractmethod
+    def pick_item(self) -> None:
+        # This should be implemented on Collector and Defender.
+        # Implementations on Attacker and Healer should just return None.
+        raise NotImplementedError(f"{self.__class__.__name__} needs to implement Player.pick_item.")
 
     @property
     def required_call(self) -> int:
@@ -248,7 +261,8 @@ class Player(Unit):
         dispenser = self.game.wave.dispensers[self.access_letter()]
         if not self.location.renders_game_object(dispenser):
             return False
-        self.follow(dispenser, (self.use_dispenser, (dispenser, option), {}))
+        self.action_args = (option,)
+        self.follow(dispenser)
         self.move(self.destination)
         return True
 
@@ -264,7 +278,7 @@ class Player(Unit):
         if not self.location.renders_tile(destination):
             return False
 
-        self.post_move_action_queue.clear()
+        self.stop_movement()
         self.move(destination)
         return True
 

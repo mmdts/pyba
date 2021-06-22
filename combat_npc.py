@@ -4,6 +4,7 @@ from log import LM, J
 from player import Player
 from terrain import C, E, Inspectable
 from npc import Npc
+from unit import PRE
 
 
 class CombatNpc(Npc):
@@ -19,6 +20,9 @@ class CombatNpc(Npc):
         self.defence: int = self.DEFENCE[wave_number]
         self.followee: Optional[Player] = None  # Followee is already defined, but we're overriding the type check.
         self.tagger: Optional[Player] = None  # Attacker sets himself as tagger if attacking in the first cycle.
+        self.actions.extend([
+            (Player, self.do_nothing, PRE),
+        ])
 
     def str_info(self) -> str:
         letter = "_"
@@ -49,11 +53,7 @@ class CombatNpc(Npc):
             self.stop_movement(clear_destination=True)  # Npc reached and is now attacking.
 
         self.step()
-
-        if len(self.pathing_queue) == 0 and self.can_act_on(self.followee):
-            self.exhaust_pmac(False)
-
-        return
+        self.act()
 
     @property
     def choice_arg(self) -> List[Player]:

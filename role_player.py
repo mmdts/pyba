@@ -9,6 +9,8 @@ from player import Player
 from healer import Healer as PenanceHealer
 
 # Gear bonuses are on the form of (accuracy, damage, set bonus, attack speed, range)
+from unit import POST, PRE
+
 Stats = Tuple[int, int, int, int]
 
 
@@ -48,6 +50,9 @@ class Attacker(Player):
         self.spec: int = Attacker.MAX_SPEC
 
         self.gear_bonus: Stats = Attacker.MSB
+        self.actions.extend([
+            # Attack CombatNpc
+        ])
 
     def __call__(self) -> bool:
         # Increase the special attack bar.
@@ -69,6 +74,12 @@ class Attacker(Player):
     def access_letter() -> str:
         return "a"
 
+    def use_dispenser(self, option: Optional[int] = None) -> None:
+        pass  # TODO: Implement attacker dispenser.
+
+    def pick_item(self) -> None:
+        raise AssertionError("Attackers cannot pick items.")
+
 
 class Defender(Player):
     CALLS = ["tofu", "crackers", "worms"]
@@ -76,13 +87,26 @@ class Defender(Player):
     def __init__(self, game: Inspectable):
         super().__init__(E.DEFENDER_SPAWN, game)
         self.calls_with = Healer
+        self.trap: Optional[Trap] = None
+        self.actions.extend([
+            (Trap, self.repair_trap, PRE),
+        ])
+
+    def __call__(self) -> bool:
+        if self.trap is not None and self.busy_i == 0:
+            self.trap.charges = 2
+            self.inventory[self.inventory.index(Y.LOGS)] = Y.EMPTY
+            self.trap = None
+        debug("Defender.repair_trap", f"Defender successfully repaired the trap.")
+
+        return super().__call__()
 
     @staticmethod
     def access_letter() -> str:
         return "d"
 
-    def use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
-        self._use_dispenser(dispenser, option)
+    def use_dispenser(self, option: Optional[int] = None) -> None:
+        self._use_dispenser(option)
 
         alternator_i = 0
         alternator = [Y.CRACKERS, Y.TOFU, Y.WORMS]
@@ -118,58 +142,47 @@ class Defender(Player):
             ))
             self.inventory[slot] = Y.EMPTY
 
-    def repair_trap(self, trap: Trap) -> bool:
-        assert self.can_act_on(trap), \
-            "Cannot repair trap when standing far away. Please only use the Defender.repair_trap function after " \
-            "issuing a follow (i.e. through Defender.click_repair_trap)."
+    def repair_trap(self) -> bool:
+        assert self.followee.charges < 2, "Cannot repair a trap that's already repaired."
 
         debug("Defender.repair_trap", f"Defender successfully reached the trap and will attempt to repair it.")
 
         if Y.LOGS in self.inventory and Y.HAMMER in self.inventory:
             self.busy_i = 5  # Repairing trap is a 5 tick action.
-
-            def pmac_entry(s, t):
-                t.charges = 2
-                s.inventory[s.inventory.index(Y.LOGS)] = Y.EMPTY
-                debug("Defender.repair_trap", f"Defender successfully repaired the trap.")
-
-            self.queue_action((pmac_entry, (self, trap), {}), forced=True)
+            self.trap = self.followee
             debug("Defender.repair_trap", f"Defender successfully queued the trap repair action.")
             return True
         debug(f"Defender.repair_trap", f"Defender failed to repair trap with inventory: {self.inventory}.")
         return False
 
-    def pick_item(self, item: DroppedItem):
+    def pick_item(self) -> bool:
         try:
-            assert isinstance(item, Hammer) or isinstance(item, Logs) or isinstance(item, Food), \
+            assert isinstance(self.followee, (Hammer, Logs, Food)), \
                 "The defender can only pick up items that are one of a hammer, logs, or dropped food."
-            assert self.can_act_on(item), \
-                "Cannot pick item when standing far away. Please only use the Defender.pick_item function after " \
-                "issuing a follow (i.e. through Defender.click_pick_item)."
-            assert item in self.game.wave.dropped_hnls or item in self.game.wave.dropped_food, \
+            assert self.followee in self.game.wave.dropped_hnls or self.followee in self.game.wave.dropped_food, \
                 "The defender can only pick up items that are dropped."
         except AssertionError as e:
-            debug("Defender.pick_item", f"Returned false due to the assertion: {str(e)}")
+            debug("Defender.pick_item", f"{self} returned False due to the assertion: {str(e)}")
             return False
 
         if Y.EMPTY not in self.inventory:
             return False
-        if isinstance(item, Hammer):
+        if isinstance(self.followee, Hammer):
             self.inventory[self.inventory.index(Y.EMPTY)] = Y.HAMMER
-            self.game.wave.dropped_hnls.pop(self.game.wave.dropped_hnls.index(item))
+            self.game.wave.dropped_hnls.pop(self.game.wave.dropped_hnls.index(self.followee))
             self.game.wave.hnl_flags |= self.game.wave.SPAWN_HAMMER
-        if isinstance(item, Logs):
+        if isinstance(self.followee, Logs):
             self.inventory[self.inventory.index(Y.EMPTY)] = Y.LOGS
-            self.game.wave.dropped_hnls.pop(self.game.wave.dropped_hnls.index(item))
-            if item.location == E.LOGS_SPAWN:
+            self.game.wave.dropped_hnls.pop(self.game.wave.dropped_hnls.index(self.followee))
+            if self.followee.location == E.LOGS_SPAWN:
                 self.game.wave.hnl_flags |= self.game.wave.SPAWN_NEAR_LOGS
-            if item.location == E.FAR_LOGS_SPAWN:
+            if self.followee.location == E.FAR_LOGS_SPAWN:
                 self.game.wave.hnl_flags |= self.game.wave.SPAWN_FAR_LOGS
-        if isinstance(item, Food):
-            self.inventory[self.inventory.index(Y.EMPTY)] = str(item.which)
-            self.game.wave.dropped_food.pop(self.game.wave.dropped_food.index(item))
+        if isinstance(self.followee, Food):
+            self.inventory[self.inventory.index(Y.EMPTY)] = str(self.followee.which)
+            self.game.wave.dropped_food.pop(self.game.wave.dropped_food.index(self.followee))
 
-        del item
+        self.followee = None
 
     def click_drop_food(self, which: int, count: int = 1) -> bool:
         # This function is for usage by the Ai. For human usage, see click_drop_select_food.
@@ -190,16 +203,16 @@ class Defender(Player):
         if not self.location.renders_game_object(trap):
             debug("Defender.click_repair_trap", f"{self} cannot render the trap {trap}.")
             return False
-        self.follow(trap, (self.repair_trap, (trap,), {}))
-        debug("Defender.click_repair_trap",
-              f"We followed the trap and our current pathing queue is: {Terrain.queue_info(self.pathing_queue)}.")
+        self.follow(trap)
         self.move(self.destination)
+        debug("Defender.click_repair_trap",
+              f"{self} followed the trap {trap}and has pathing queue: {Terrain.queue_info(self.pathing_queue)}.")
         return True
 
     def click_pick_item(self, item: DroppedItem) -> bool:
         if not self.location.renders_dropped_item(item):
             return False
-        self.follow(item, (self.pick_item, (item,), {}))
+        self.follow(item)
         self.move(self.destination)
         return True
 
@@ -214,13 +227,16 @@ class Healer(Player):
     def __init__(self, game: Inspectable):
         super().__init__(E.HEALER_SPAWN, game)
         self.calls_with = Defender
+        self.actions.extend([
+            (PenanceHealer, self.use_poison_food, POST),
+        ])
 
     @staticmethod
     def access_letter() -> str:
         return "h"
 
-    def use_dispenser(self, dispenser: Dispenser, option: Optional[int] = None) -> None:
-        self._use_dispenser(dispenser, option)
+    def use_dispenser(self, option: Optional[int] = None) -> None:
+        self._use_dispenser(option)
 
         alternator_i = 0
         alternator = [Y.POISON_TOFU, Y.POISON_WORMS, Y.POISON_MEAT]
@@ -244,11 +260,17 @@ class Healer(Player):
 
         self.busy_i = Player.DISPENSER_BUSY_WAIT
 
-    def use_poison_food(self, which: int, healer: PenanceHealer):
+    def pick_item(self) -> None:
+        raise AssertionError("Healers cannot pick items.")
+
+    def use_poison_food(self, which: int) -> None:
+        assert isinstance(self.followee, PenanceHealer), "Cannot poison something that isn't a healer."
+
         assert str(which) in self.inventory, "We cannot use poison food we do not have."
         assert which < self.CALL_COUNT, "We cannot use things that aren't poison food."
         if which == self.correct_call:
-            healer.apply_poison()
+            debug("Healer.use_poison_food", f"{self} successfully poisoned {self.followee}.")
+            self.followee.apply_poison()
         else:
             self.print("Incorrect poison food.")
         self.inventory[self.inventory.index(str(which))] = Y.EMPTY
@@ -256,7 +278,8 @@ class Healer(Player):
     def click_use_poison_food(self, which: int, healer: PenanceHealer) -> bool:
         if not self.location.renders_unit(healer):
             return False
-        self.follow(healer, (self.use_poison_food, (which, healer), {}))
+        self.action_args = (which,)
+        self.follow(healer)
         self.move(self.destination)
         return True
 

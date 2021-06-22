@@ -30,17 +30,14 @@ class Npc(Unit):
     RANDOM_WALK_ROLL: Tuple[int] = (1, 8)  # Represents a 1/8 chance.
     RANDOM_WALK_RADIUS: int = 5
 
-    def __init__(self, wave_number: int, location: C, game: Inspectable, name: str = None):
+    def __init__(self, location: C, game: Inspectable):
         super().__init__(location, game)
-        self.name: str = name
-        if self.name is None:
-            self.name = self.default_name
+        self.name = self.default_name
 
         self.cycle: int = 0
         self.despawn_i: int = self.DESPAWN_TICKS
         self.state: int = Npc.ALIVE
-        self.wave_number: int = wave_number
-        self.hitpoints: int = self.HITPOINTS[self.wave_number]
+        self.hitpoints: int = self.HITPOINTS[self.game.wave.number]
         self.is_still_static: bool = True
         self.no_random_walk_i: int = 0  # The time it would've taken to reach the destination.
 

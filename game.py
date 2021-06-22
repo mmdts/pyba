@@ -29,7 +29,7 @@ class Wave:
         self.end_flag = False
         self.game: Inspectable = game
         self.number: int = wave_number
-        self.penance: Penance = Penance(wave_number, self.game)
+        self.penance: Penance = Penance(self.game)
         self.dispensers = {
             "a": AttackerDispenser(self.game),
             "d": DefenderDispenser(self.game),
@@ -129,7 +129,6 @@ class Game:
         self.tick: int = -1
         self.wave: Optional[Wave] = None
 
-        self.wave_number: int = -1
         self.runner_movements: List[List[C]] = []
 
     def start_new_wave(self, wave_number: int, runner_movements: List[List[C]]) -> None:
@@ -140,7 +139,6 @@ class Game:
         self.wave = Wave(wave_number, self.tick + 1, self.inspectable)  # self.wave.start_tick is 0.
 
         self.runner_movements = runner_movements
-        self.wave_number = wave_number
 
         self.wave.penance.set_runner_movements(runner_movements.copy())
 

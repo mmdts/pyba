@@ -13,11 +13,11 @@ class CombatNpc(Npc):
     DUE_TO_SPAWN_TICKS: int = 0
     ATTACK_RANGE: int = 1
 
-    def __init__(self, wave_number: int, location: C, game: Inspectable, name: str = None):
-        super().__init__(wave_number, location, game, name)
+    def __init__(self, location: C, game: Inspectable, name: str = None):
+        super().__init__(location, game, name)
         if self.DEFENCE is None:
             raise NotImplementedError("self.DEFENCE")
-        self.defence: int = self.DEFENCE[wave_number]
+        self.defence: int = self.DEFENCE[self.game.wave.number]
         self.followee: Optional[Player] = None  # Followee is already defined, but we're overriding the type check.
         self.tagger: Optional[Player] = None  # Attacker sets himself as tagger if attacking in the first cycle.
         self.actions.extend([
@@ -70,8 +70,8 @@ class Fighter(CombatNpc):
 
     ATTACK_RANGE: int = 1
 
-    def __init__(self, wave_number: int, game: Inspectable):
-        super().__init__(wave_number, E.FIGHTER_SPAWN, game)
+    def __init__(self, game: Inspectable):
+        super().__init__(E.FIGHTER_SPAWN, game)
 
 
 class Ranger(CombatNpc):
@@ -81,5 +81,5 @@ class Ranger(CombatNpc):
 
     ATTACK_RANGE: int = 6
 
-    def __init__(self, wave_number: int, game: Inspectable):
-        super().__init__(wave_number, E.RANGER_SPAWN, game)
+    def __init__(self, game: Inspectable):
+        super().__init__(E.RANGER_SPAWN, game)

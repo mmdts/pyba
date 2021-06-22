@@ -30,8 +30,8 @@ class Runner(Npc):
     CYCLE_MAP: List[int] = [None, None, 2, 3, 1, 2, 3]
     TARGET_STATE_MAP: List[List[int]] = [[], [4], [2, 5], [3, 6]]
 
-    def __init__(self, wave_number: int, game: Inspectable):
-        super().__init__(wave_number, E.RUNNER_SPAWN, game)
+    def __init__(self, game: Inspectable):
+        super().__init__(E.RUNNER_SPAWN, game)
         self.target_state: int = Runner.INITIAL_TARGET_STATE
 
         self.forced_movements: List[C] = []

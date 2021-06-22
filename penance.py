@@ -8,8 +8,7 @@ from combat_npc import Fighter, Ranger
 
 
 class Penance:
-    def __init__(self, wave_number, game: Inspectable):
-        self.wave_number = wave_number
+    def __init__(self, game: Inspectable):
         self.game = game
         self.fighters: List[Fighter] = []
         self.rangers: List[Ranger] = []
@@ -18,10 +17,10 @@ class Penance:
 
         # A dictionary of lists with two items each, the first for spawns and the second for reserves.
         self.spawns: Dict[str, List[int]] = {
-            "a": [*Fighter.SPAWNS[wave_number]],
-            "s": [*Ranger.SPAWNS[wave_number]],
-            "d": [*Runner.SPAWNS[wave_number]],
-            "h": [*Healer.SPAWNS[wave_number]],
+            "a": [*Fighter.SPAWNS[self.game.wave.number]],
+            "s": [*Ranger.SPAWNS[self.game.wave.number]],
+            "d": [*Runner.SPAWNS[self.game.wave.number]],
+            "h": [*Healer.SPAWNS[self.game.wave.number]],
         }
 
         # Penance monsters are due to spawn at different times.
@@ -101,7 +100,7 @@ class Penance:
 
     def spawn(self, key: Union[Type, list, int, str], tick: int = None) -> Npc:
         key = self._get_letter(key)
-        new_species = self._get_type(key)(self.wave_number, self.game)
+        new_species = self._get_type(key)(self.game)
         self.set_due_to_spawn(key, False)
         self[key].append(new_species)
         self.game.wave.print(f"A new {new_species.default_name.lower()} has spawned "

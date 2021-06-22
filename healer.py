@@ -34,8 +34,8 @@ class Healer(Npc):
 
     POISON_RANGE: int = 1
 
-    def __init__(self, wave_number: int, game: Inspectable, name: str = None):
-        super().__init__(wave_number, E.PENANCE_HEALER_SPAWN, game, name)
+    def __init__(self, game: Inspectable):
+        super().__init__(E.PENANCE_HEALER_SPAWN, game)
         self.target_state: int = Healer.TARGETING_PLAYER  # It swaps on call of Healer.switch_target.
 
         self.in_initial_state: bool = True
@@ -123,7 +123,7 @@ class Healer(Npc):
         debug("Healer.on_reach", f"{self} reached {self.followee} "
                                  f"and switched target state to {self.target_state}.")
         if isinstance(self.followee, Runner):
-            self.followee.hitpoints = Runner.HITPOINTS[self.wave_number]
+            self.followee.hitpoints = Runner.HITPOINTS[self.game.wave.number]
 
         self.stop_movement(clear_follow=True)
         self.no_follow_i = Healer.NO_FOLLOW_DELAYS[self.target_state]

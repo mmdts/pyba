@@ -54,11 +54,14 @@ class Wave:
             "a": None, "c": None, "d": None, "h": None,  # be careful when changing.
         }
 
-    def __call__(self, tick: int) -> bool:
+    def __call__(self) -> bool:
         # Wave starts on tick 0.
-        tick -= self.start_tick  # All ticks after this point, including the ones passed to the penance are normalized
-        if tick == Wave.WAVE and not self.end_flag:  # with respect to the wave start. The ones passed to Players,
-            debug("Wave.__call__", "The wave ended unexpectedly due to a timeout.")  # however, are not.
+        # All ticks after this point, including the ones passed to the penance are normalized
+        # with respect to the wave start through the use of self.relative_tick.
+        #
+        # Player code also relies on self.game.wave.relative_tick when making decisions.
+        if self.relative_tick == Wave.WAVE and not self.end_flag:
+            debug("Wave.__call__", "The wave ended unexpectedly due to a timeout.")
             return False
 
         # Handle wave end.
@@ -66,14 +69,14 @@ class Wave:
             return False
 
         # Call changes.
-        if tick % Wave.CALL == 1:
+        if self.relative_tick % Wave.CALL == 1:
             self.game.stall(self.change_call)
 
         # If all the penance are dead and we're on a penance cycle.
-        if not self.penance(tick):
+        if not self.penance():
             self.game.stall(self.end)
 
-        if tick % Wave.CYCLE == 0:
+        if self.relative_tick % Wave.CYCLE == 0:
             # If we need to spawn hammer or logs, we do.
             if self.hnl_flags & Wave.SPAWN_HAMMER:
                 self.dropped_hnls.append(Hammer(self.game))
@@ -90,13 +93,13 @@ class Wave:
     def relative_tick(self) -> int:
         return self.game.tick - self.start_tick
 
-    def print(self, *args, **kwargs):
+    def print(self, *args, **kwargs) -> None:
         game_print("Wave.print", f"Wave {self.number}:", *args, **kwargs)
         self.game.text_payload.append(
             " ".join([str(arg) for arg in (f"WAVE {self.number}::", *args)])
         )
 
-    def change_call(self):
+    def change_call(self) -> None:
         for key in self.correct_calls:
             if self.correct_calls[key] is None:
                 if key == "a":
@@ -113,7 +116,7 @@ class Wave:
             self.correct_calls[key] = call
         self.print(f"Call {self.relative_tick // Wave.CALL} ({Terrain.tick_to_string(self.relative_tick)}).")
 
-    def end(self):
+    def end(self) -> None:
         self.end_flag = True
         self.print(f"Wave ended ({Terrain.tick_to_string(self.relative_tick)}).")
 
@@ -165,20 +168,20 @@ class Game:
         # minigames / other content, individual checking is infeasible), but instead, to implement coding structure
         # that is coherent, and *logically* consistent with how the original Runescape acts, yet works fine on our
         # circumstances (strong machines, just five players and one minigame, very fast execution required).
-        if not self.wave(self.tick):
+        if not self.wave():
             return False
 
         # Process actions related to the the AI actions.
         for role in self.ai:
             if self.ai[role] is not None:
-                if not self.ai[role].__call__(self.tick):
+                if not self.ai[role].__call__():
                     return False
 
         # Process actions related to the players, and return if a player died (currently impossible).
         # Player actions NEED to be done after Npc actions. The order is important! This matters for things like
         # manual Healer poisoning (which is a Player action) causing reserve healers to spawn a tick later than
         # automatic Healer poisoning (which is an Npc action).
-        if not self.players(self.tick):
+        if not self.players():
             return False
 
         return True
@@ -203,9 +206,5 @@ class Game:
     def original_map(self) -> List[str]:
         return Terrain.new()
 
-    def print_runners(self):
+    def print_runners(self) -> None:
         game_print("Game.print_runners", *(f"    {runner}\n" for runner in self.wave.penance.runners))
-
-    def bass(self):
-        # The one true pass that rules them all.
-        pass

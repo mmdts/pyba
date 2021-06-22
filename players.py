@@ -46,7 +46,7 @@ class Players:
             return self.defender
         raise KeyError(f"Players[{key}] does not exist.")
 
-    def __call__(self, tick: int) -> bool:
+    def __call__(self) -> bool:
         for key, player in self:
             if not player():
                 # Returns False if any player dies, a condition for wave end.

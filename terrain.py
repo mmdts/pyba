@@ -496,7 +496,16 @@ class Locatable:  # Used by: [Unit, GameObject, DroppedItem]
         return True
 
 
+class InspectableWave:
+    def __init__(self, number):
+        self.number = number
+
+
 class Inspectable:
+    CYCLE: int = 10  # The penance cycle
+    CALL: int = 5 * CYCLE  # A call is 5 cycles
+    WAVE: int = 6 * CALL  # We force a wave to end on 6 calls to prevent an infinite loop if the players just idle.
+
     # This class is used for accessing the game object on the __call__ function of lower classes in the hierarchy.
     # What basically happens is that every class passes the game inspectable down a level when calling
     # the classes it wraps.
@@ -506,6 +515,7 @@ class Inspectable:
         self.arg = arg
         self.locatables: List[Locatable] = []
         self.uuids: List[int] = []
+        self.wave_number: Optional[int] = None
 
         self.text_payload = []  # An array of things printed by Wave and Npc objects. This is exhausted by an interface.
 
@@ -514,9 +524,23 @@ class Inspectable:
 
     @property
     def wave(self):  # -> Wave
-        assert self.arg.wave is not None and self.arg.wave.__class__.__name__ == "Wave", \
-            "Wave is not set on this inspectable."
-        return self.arg.wave
+        condition1 = self.arg.wave is not None and self.arg.wave.__class__.__name__ == "Wave"
+        condition2 = self.wave_number is not None
+        assert condition1 or condition2, "Wave is not set on this inspectable."
+
+        if condition1:
+            return self.arg.wave
+
+        if condition2:
+            return InspectableWave(self.wave_number)
+
+        raise RuntimeError("Something weird happened and we reached this point.")
+
+    @property
+    def ai(self) -> Dict:
+        assert self.arg.ai is not None, \
+            "Ai is not set on this inspectable."
+        return self.arg.ai
 
     def start_new_wave(self, wave_number: int, runner_movements: List[List[C]]):
         return self.arg.start_new_wave(wave_number, runner_movements)
@@ -725,9 +749,10 @@ class E:  # Element - All constants are of type C unless otherwise stated.
 
     # Tiles and Thresholds
     MAIN_STACK = Terrain.find("M")
-    HENDI_SQ1 = TRAP + 3 * D.NW + D.N
-    HENDI_SQ2 = HENDI_SQ1 + 4 * D.E
-    HENDI_SQ3 = HENDI_SQ2 + 3 * D.S
+    HENDI_T1 = TRAP + 3 * D.NW + D.N
+    HENDI_T2 = HENDI_T1 + 4 * D.E
+    HENDI_T3 = HENDI_T2 + 3 * D.S
+    SLIDE_TILE = HENDI_T2
     RUN_WEST_THRESHOLD = Terrain.find("O")
     STAY_WEST_THRESHOLD = Terrain.find("o")
     WAIT_TILE = Terrain.find("z")

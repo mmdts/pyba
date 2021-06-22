@@ -50,18 +50,18 @@ class Player(Unit):
 
     def __call__(self) -> bool:
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).
-            debug("Player.__call__", f"{self} is currently busy with busy_i = {self.busy_i}.")
+            debug("Player.__call__.busy_i", f"{self} is currently busy with busy_i = {self.busy_i}.")
             self.busy_i -= 1
             return True
 
-        if self.followee is not None:
-            debug("Player.__call__", f"{self} is following {self.followee} and decided to refollow it.")
-            self.follow(self.followee)  # Re-follow a followee that might move.
+        if self.refollow():
             self.move(self.destination)
 
         self.act(PRE)
         self.step()
         self.act()
+
+        debug("Player.__call__", f"{self}")
 
         return True
 
@@ -85,6 +85,17 @@ class Player(Unit):
     @abstractmethod
     def access_letter() -> str:
         raise NotImplementedError("Access letter is not implemented for this player.")
+
+    @property
+    def choice_arg(self) -> List[Locatable]:
+        rv = [self.game.wave.dispensers[self.access_letter()]]
+        rv.extend(self.game.wave.game_objects.cannons)
+        return rv
+
+    def is_idle(self) -> bool:
+        return self.followee is None and \
+               (self.destination is None or self.destination == self.location) and \
+               self.busy_i == 0
 
     def get_closest_adjacent_square_to(self, target: Locatable) -> C:
         if not target.follow_allow_under and self.location == target.location:
@@ -269,7 +280,7 @@ class Player(Unit):
     def click_destroy_items(self, inventory_slots: List[int]) -> bool:
         for slot in inventory_slots:
             if self.inventory[slot] != "_" and self.inventory[slot] != "X":
-                self.inventory[slot] = "_"
+                self.inventory[self.inventory.index(self.inventory[slot])] = "_"
         return True
 
     def click_move(self, destination: C) -> bool:

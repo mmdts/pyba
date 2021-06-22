@@ -149,13 +149,13 @@ class Runner(Npc):
             soft_crash = self.cycle in [7, 8, 9, 0]
 
             if hendi_success:
-                debug("Runner.tick_eat.c", f"{self} successfully got hendied.")
+                debug("Runner.tick_eat.verbose", f"{self} successfully got hendied.")
 
             if soft_crash:
-                debug("Runner.tick_eat.c", f"{self} slow multied / soft crashed.")
+                debug("Runner.tick_eat.verbose", f"{self} slow multied / soft crashed.")
 
             if not soft_crash and not hendi_success:
-                debug("Runner.tick_eat.c", f"{self} hard crashed.")
+                debug("Runner.tick_eat.verbose", f"{self} hard crashed.")
             # This is the end of the debugging code part.
 
             self.stop_movement(clear_destination=False)

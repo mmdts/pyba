@@ -44,25 +44,30 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Defender.repair_trap": B,
 
     "Healer.use_poison_food": G,
+    "RuleBasedHealer.follow_code": G,
 
-    # "Player.__call__": C,  # The busy wait.
+    # "Player.__call__": C,  # Just self.
+    # "Player.__call__.busy_i": C,
     # "Player.path": C,
-    "Player.move": C,
+    # "Player.move": C,
     # "Player.move.pathing_queue": C,
     # "Player.single_step": C,
-    "Unit.act": C,
+    # "Unit.act": C,
+    # "Unit.refollow": C,
     # "Npc.__call__": LC,
 
     # "Runner.do_cycle": LB,
     # "Runner.step": LB,
     # "Runner.tick_eat": LB,
-    "Runner.tick_eat.c": LB,
+    # "Runner.tick_eat.verbose": LB,
     # "Runner.tick_target": LB,
     # "Runner.walk": LB,
 
     "Healer.do_cycle": LG,
-    # "Healer.do_cycle.r": LG,
-    # "Healer.do_cycle.f": LG,
+    "Healer.do_cycle.poison": LG,
+    "Healer.apply_poison": LG,
+    # "Healer.do_cycle.random": LG,
+    # "Healer.do_cycle.followee": LG,
     # "Healer.switch_followee": LG,
     # "Healer.single_step": G,
     # "Healer.on_reach": LG,
@@ -88,7 +93,7 @@ def debug(namespace: str, *args, **kwargs) -> None:
 
     color = ALLOWED_DEBUG_NAMESPACES[namespace] or ""
 
-    return print(f"DEBUG:: {color}{namespace:<20}{J}::", *args, **kwargs)
+    return print(f"DEBUG:: {color}{namespace:<26}{J}::", *args, **kwargs)
 
 
 def game_print(namespace: str, *args, **kwargs) -> None:
@@ -100,4 +105,4 @@ def game_print(namespace: str, *args, **kwargs) -> None:
 
     color = ALLOWED_GAME_PRINT_NAMESPACES[namespace] or ""
 
-    return print(f"GAME :: {color}{namespace:<20}{J}::", *args, **kwargs)
+    return print(f"GAME :: {color}{namespace:<26}{J}::", *args, **kwargs)

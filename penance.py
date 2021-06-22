@@ -39,7 +39,7 @@ class Penance:
             self.spawns[key][1] += self.spawns[key][0]
             self.total_counts[key] = self.spawns[key][1]
 
-    def __getitem__(self, key: Union[Type, int, str]) -> List[Npc]:
+    def __getitem__(self, key: Union[Type[Npc], int, str]) -> List[Npc]:
         return self._get_list(key)
 
     def __iter__(self) -> Tuple[str, List[Npc]]:
@@ -63,11 +63,12 @@ class Penance:
                         # Here, we want accurate statistics regardless of stall, so this message is always instant.
                         self.game.wave.print(f"All penance {npc.default_name.lower()}s have been killed "
                                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
-                        species = []  # Destroy the species completely.
+                        species.pop()  # Destroy the species completely.
 
                 if not npc_still_spawned:
                     # Handle penance death.
-                    species.pop(i)
+                    if len(species) > 0:
+                        species.pop(i)
                     if not isinstance(npc, Runner) or not npc.has_escaped:
                         self.game.wave.print(f"{npc.name} death animation finished "
                                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
@@ -77,7 +78,7 @@ class Penance:
 
         # Handle penance spawns every penance cycle (6s)
         # Spawning has to be handled after penance death, since a penance can die and another spawn in the same tick.
-        if self.game.wave.relative_tick % self.game.wave.CYCLE == 0 and self.game.wave.relative_tick > 0:
+        if self.game.wave.relative_tick % Inspectable.CYCLE == 0 and self.game.wave.relative_tick > 0:
             for key, species in self:
                 # Spawning can be stalled, and is added through Game.stall.
                 # If there are still reserves and the current penance are less than the maximum available at a time.
@@ -88,7 +89,7 @@ class Penance:
         return self.count_alive() != 0 or self.count_reserves() != 0
 
     # Key is the one letter yield string that represents the penance species.
-    def can_spawn(self, key: Union[Type, list, int, str]) -> bool:
+    def can_spawn(self, key: Union[Type[Npc], list, int, str]) -> bool:
         key = self._get_letter(key)
         if self.get_due_to_spawn(key):
             return True
@@ -98,7 +99,7 @@ class Penance:
 
         return False
 
-    def spawn(self, key: Union[Type, list, int, str], tick: int = None) -> Npc:
+    def spawn(self, key: Union[Type[Npc], list, int, str], tick: int = None) -> Npc:
         key = self._get_letter(key)
         new_species = self._get_type(key)(self.game)
         self.set_due_to_spawn(key, False)
@@ -115,13 +116,13 @@ class Penance:
 
         return new_species
 
-    def get_due_to_spawn(self, key: Union[Type, list, int, str]) -> bool:
+    def get_due_to_spawn(self, key: Union[Type[Npc], list, int, str]) -> bool:
         return self._due_to_spawn[self._get_letter(key)]
 
-    def set_due_to_spawn(self, key: Union[Type, list, int, str], value: bool) -> None:
+    def set_due_to_spawn(self, key: Union[Type[Npc], list, int, str], value: bool) -> None:
         self._due_to_spawn[self._get_letter(key)] = value
 
-    def _get_type(self, key: Union[Type, list, int, str]) -> Type:
+    def _get_type(self, key: Union[Type[Npc], list, int, str]) -> Type:
         if isinstance(key, str):
             key = key.lower()
         if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:
@@ -134,7 +135,7 @@ class Penance:
             return Healer
         raise KeyError(f"Penance[{key}] does not exist.")
 
-    def _get_letter(self, key: Union[Type, list, int, str]) -> str:
+    def _get_letter(self, key: Union[Type[Npc], list, int, str]) -> str:
         if isinstance(key, str):
             key = key.lower()
         if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:
@@ -147,7 +148,7 @@ class Penance:
             return "h"
         raise KeyError(f"Penance[{key}] does not exist.")
 
-    def _get_list(self, key: Union[Type, list, int, str]) -> List[Npc]:
+    def _get_list(self, key: Union[Type[Npc], list, int, str]) -> List[Npc]:
         if isinstance(key, str):
             key = key.lower()
         if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:

@@ -1,9 +1,10 @@
 import traceback
-from typing import Callable, List, Dict, Optional
+from typing import Callable, List, Dict, Optional, Type
 from flask_socketio import SocketIO
 from threading import Thread
 import json
 
+from ai import RuleBasedHealer, Ai
 from game import Game
 from interface_transmit import build_transmittable_object_from
 from log import debug
@@ -27,9 +28,16 @@ class Room:
         self.clients_by_role: Dict[str, Optional[str]] = {"d": None, "a": None, "s": None, "c": None, "h": None}
         self.clients_by_id: Dict[str, bool] = {}  # The one that has the True is the room initiator.
         self.server: SocketIO = server
+
+        self.ai: Dict[str, Optional[Type[Ai]]] = {
+            # "c": RuleBasedCollector,
+            "h": RuleBasedHealer,
+        }
+
         self.game: Game = Game()
         self.player_action_queue: List[Action] = []
-        self.game.set_new_players({})  # TODO: No AI. Fix this when AI is implemented.
+        self.game.set_new_players(self.ai)  # TODO: No AI. Fix this when AI is implemented.
+
         self.blocking_action = False  # Flips to true on the first tick of new_wave action.
         self.mode: int = Room.DELAY
 
@@ -47,7 +55,7 @@ class Room:
                         debug("Room.__call__", "Encountered an error. Resetting game.")
                         traceback.print_exc()
                         room.game = Game()
-                        self.game.set_new_players({})
+                        self.game.set_new_players(self.ai)
 
                     if room.mode == Room.DELAY:
                         room.server.sleep(Room.DELAY_DURATION)
@@ -65,13 +73,14 @@ class Room:
         if self.game.wave is not None:
             if self.game():  # The game call happens here!
                 self.blocking_action = False  # A tick passed, now actions can happen again.
+                self.transmit()
             else:
                 self.game.wave = None
                 self.blocking_action = True
                 self.player_action_queue.clear()
-            # ANY CUSTOM PLAYER CODE GOES HERE!
 
-            self.transmit()
+            # ANY CUSTOM PLAYER CODE GOES HERE!
+            pass
 
     def transmit(self) -> None:
         # Should provide a full game state, ending on something that's Transmittable.
@@ -105,6 +114,12 @@ class Room:
             f"A player ({self.clients_by_role[role]}) is already assigned to the role {role}."
         self.clients_by_role[role] = client_id
         self.clients_by_id[client_id] = len(self.clients_by_id) == 0  # Set only the first player to True.
+        if role in self.ai:
+            del self.ai[role]
+        if role in self.game.original_ai:
+            del self.game.original_ai[role]
+        if role in self.game.ai:
+            del self.game.ai[role]
 
     def add(self, action: Callable, *args, **kwargs) -> None:
         self.player_action_queue.append((action, args, kwargs))

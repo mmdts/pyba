@@ -33,7 +33,7 @@ class Unit(Locatable):
         self.is_running: bool = False
 
         self.action_args: Tuple = ()
-        self.actions: List[Tuple[Type, Callable, bool]] = []
+        self.actions: List[Tuple[Type[Locatable], Callable, bool]] = []
         assert self.location is not None, "Cannot create a unit without a location."
 
     @abstractmethod
@@ -46,6 +46,12 @@ class Unit(Locatable):
 
     def __str__(self) -> str:
         return self.str_info()
+
+    @property
+    @abstractmethod
+    def choice_arg(self) -> List[Locatable]:
+        raise NotImplementedError("Specific Npc species/Players should override this function "
+                                  "to specify what they follow.")
 
     def can_single_step(self, destination: C) -> bool:
         return self.location.can_single_step(destination)
@@ -142,6 +148,19 @@ class Unit(Locatable):
             return False
 
         self.destination = destination
+        return True
+
+    def refollow(self) -> bool:
+        if self.followee is None:
+            return False
+
+        if len(self.choice_arg) > 0 and self.followee not in self.choice_arg:
+            debug("Unit.refollow", f"{self} was following {self.followee} but it can't anymore.")
+            self.stop_movement()
+            return False
+
+        debug("Unit.refollow", f"{self} is following {self.followee} and decided to refollow it.")
+        self.follow(self.followee)  # Re-follow a followee that might move.
         return True
 
     def stop_movement(self, clear_destination: bool = False, clear_follow: bool = False) -> None:

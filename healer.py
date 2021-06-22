@@ -4,7 +4,7 @@ from typing import List, Tuple, Union, Optional
 from log import debug, J, LG
 from player import Player
 from runner import Runner
-from terrain import E, Inspectable, Targeting, Terrain
+from terrain import E, Inspectable, Targeting
 from npc import Npc
 from unit import Unit, POST
 
@@ -48,6 +48,9 @@ class Healer(Npc):
             (Runner, self.switch_followee_state, POST),
         ])
 
+        if "h" in self.game.ai and self.game.ai["h"] is not None:
+            self.game.ai["h"].healers.append(self)
+
     def str_info(self) -> str:
         letter = self.target_state == Healer.TARGETING_RUNNER and 'R' or 'P'
         if isinstance(self.followee, Runner):
@@ -62,11 +65,13 @@ class Healer(Npc):
     def do_cycle(self) -> None:
         if (self.game.wave.relative_tick - self.poison_start_tick) % 5 == 0 and self.is_poisoned():
             self.poison_i -= 1
+            debug("Healer.do_cycle.poison", f"{self} ticking {self.poison_damage} poison damage to reach "
+                                            f"{self.hitpoints - self.poison_damage} HP.")
             self.hitpoints -= self.poison_damage
 
         # This entire condition is debug.
         if self.followee is None:
-            debug("Healer.do_cycle.f",
+            debug("Healer.do_cycle.followee",
                   f"{self} checking condition with "
                   f"self.is_still_static = {self.is_still_static} and self.destination = {self.destination} and "
                   f"self.no_follow_i = {self.no_follow_i} and self.no_random_walk_i = {self.no_random_walk_i}.")
@@ -89,7 +94,7 @@ class Healer(Npc):
         if self.followee is None and \
                 (self.no_follow_i != 0 or not self.switch_followee()) and \
                 not self.in_initial_state:
-            debug("Healer.do_cycle.r", f"{self} will attempt to random walk because condition is true.")
+            debug("Healer.do_cycle.random", f"{self} will attempt to random walk because condition is true.")
             self.set_random_walk_destination()
             if self.no_follow_i > 0:
                 self.no_follow_i -= 1
@@ -141,6 +146,8 @@ class Healer(Npc):
         # We reset the poison damage if it's already poisoned.
         self.poison_i = Healer.MAX_POISON_I
 
+        debug("Healer.apply_poison", f"{self} got manually poisoned to reach "
+                                     f"{self.hitpoints - Healer.MAX_POISON_DAMAGE} HP.")
         # The forced poison damage.
         self.hitpoints -= Healer.MAX_POISON_DAMAGE
 

@@ -2,7 +2,7 @@ from random import randrange, choice, randint
 from abc import abstractmethod
 from typing import List, Tuple
 
-from log import game_print, debug, J, LC
+from log import game_print, J, LC
 from terrain import Locatable, C, Inspectable, Targeting, D
 from unit import Unit
 
@@ -46,9 +46,7 @@ class Npc(Unit):
         self.cycle %= self.CYCLE_COUNT
 
         if self.is_alive():
-            if self.followee is not None:
-                debug("Npc.__call__", f"{self} is following {self.followee} and decided to refollow it.")
-                self.follow(self.followee)  # Re-follow a followee that might move.
+            self.refollow()
             self.do_cycle()
             if self.hitpoints <= 0:
                 self.hitpoints = 0
@@ -148,11 +146,6 @@ class Npc(Unit):
 
         # We're stuck.
         return start
-
-    @property
-    @abstractmethod
-    def choice_arg(self) -> List[Locatable]:
-        raise NotImplementedError("Specific Npc species should override this function to specify what they follow.")
 
     def set_random_walk_destination(self) -> None:
         if self.no_random_walk_i > 0:

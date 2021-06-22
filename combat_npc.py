@@ -13,8 +13,8 @@ class CombatNpc(Npc):
     DUE_TO_SPAWN_TICKS: int = 0
     ATTACK_RANGE: int = 1
 
-    def __init__(self, location: C, game: Inspectable, name: str = None):
-        super().__init__(location, game, name)
+    def __init__(self, location: C, game: Inspectable):
+        super().__init__(location, game)
         if self.DEFENCE is None:
             raise NotImplementedError("self.DEFENCE")
         self.defence: int = self.DEFENCE[self.game.wave.number]
@@ -46,7 +46,7 @@ class CombatNpc(Npc):
                 self.set_random_walk_destination()
                 self.no_random_walk_i = 10  # Special value to prevent it from random walking again.
 
-        if tick % self.game.wave.CYCLE == 0:
+        if tick % Inspectable.CYCLE == 0:
             self.switch_followee()
 
         if self.can_act_on(self.followee, self.ATTACK_RANGE):

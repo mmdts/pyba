@@ -4,7 +4,7 @@ from dispenser import Dispenser
 from dropped_item import Food, DroppedItem, Logs, Hammer
 from game_object import Trap, WEGameObject
 from log import debug, M, J
-from terrain import C, E, Inspectable, Y, Terrain, Action
+from terrain import C, E, Inspectable, Y, Terrain, Action, Locatable
 from player import Player
 from healer import Healer as PenanceHealer
 
@@ -51,7 +51,7 @@ class Attacker(Player):
 
         self.gear_bonus: Stats = Attacker.MSB
         self.actions.extend([
-            # Attack CombatNpc
+            # Attack CombatNpc POST
         ])
 
     def __call__(self) -> bool:
@@ -74,6 +74,13 @@ class Attacker(Player):
     def access_letter() -> str:
         return "a"
 
+    @property
+    def choice_arg(self) -> List[Locatable]:
+        rv = super().choice_arg
+        rv.extend(self.game.wave.penance.fighters)
+        rv.extend(self.game.wave.penance.rangers)
+        return rv
+
     def use_dispenser(self, option: Optional[int] = None) -> None:
         pass  # TODO: Implement attacker dispenser.
 
@@ -83,6 +90,7 @@ class Attacker(Player):
 
 class Defender(Player):
     CALLS = ["tofu", "crackers", "worms"]
+    TRAP_BUSY_WAIT: int = 5
 
     def __init__(self, game: Inspectable):
         super().__init__(E.DEFENDER_SPAWN, game)
@@ -104,6 +112,14 @@ class Defender(Player):
     @staticmethod
     def access_letter() -> str:
         return "d"
+
+    @property
+    def choice_arg(self) -> List[Locatable]:
+        rv = super().choice_arg
+        rv.extend(self.game.wave.dropped_hnls)
+        rv.extend(self.game.wave.dropped_food)
+        rv.extend(self.game.wave.game_objects.traps)
+        return rv
 
     def use_dispenser(self, option: Optional[int] = None) -> None:
         self._use_dispenser(option)
@@ -148,7 +164,7 @@ class Defender(Player):
         debug("Defender.repair_trap", f"Defender successfully reached the trap and will attempt to repair it.")
 
         if Y.LOGS in self.inventory and Y.HAMMER in self.inventory:
-            self.busy_i = 5  # Repairing trap is a 5 tick action.
+            self.busy_i = Defender.TRAP_BUSY_WAIT  # Repairing trap is a 5 tick action.
             self.trap = self.followee
             debug("Defender.repair_trap", f"Defender successfully queued the trap repair action.")
             return True
@@ -224,6 +240,8 @@ class Healer(Player):
     TOFU, WORMS, MEAT = 0, 1, 2
     CALLS = ["tofu", "worms", "meat"]
 
+    POISON_BUSY_WAIT: int = 1
+
     def __init__(self, game: Inspectable):
         super().__init__(E.HEALER_SPAWN, game)
         self.calls_with = Defender
@@ -234,6 +252,12 @@ class Healer(Player):
     @staticmethod
     def access_letter() -> str:
         return "h"
+
+    @property
+    def choice_arg(self) -> List[Locatable]:
+        rv = super().choice_arg
+        rv.extend(self.game.wave.penance.healers)
+        return rv
 
     def use_dispenser(self, option: Optional[int] = None) -> None:
         self._use_dispenser(option)
@@ -265,6 +289,7 @@ class Healer(Player):
 
     def use_poison_food(self, which: int) -> None:
         assert isinstance(self.followee, PenanceHealer), "Cannot poison something that isn't a healer."
+        assert self.followee.is_alive(), "Cannot poison a dead healer."
 
         assert str(which) in self.inventory, "We cannot use poison food we do not have."
         assert which < self.CALL_COUNT, "We cannot use things that aren't poison food."
@@ -274,6 +299,7 @@ class Healer(Player):
         else:
             self.print("Incorrect poison food.")
         self.inventory[self.inventory.index(str(which))] = Y.EMPTY
+        self.busy_i = Healer.POISON_BUSY_WAIT
 
     def click_use_poison_food(self, which: int, healer: PenanceHealer) -> bool:
         if not self.location.renders_unit(healer):
@@ -298,6 +324,13 @@ class Collector(Player):
     @staticmethod
     def access_letter() -> str:
         return "c"
+
+    @property
+    def choice_arg(self) -> List[Locatable]:
+        rv = super().choice_arg
+        rv.extend(self.game.wave.dropped_eggs)
+        rv.extend(self.game.wave.game_objects.hoppers)
+        return rv
 
 
 class MainAttacker(Attacker):

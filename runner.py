@@ -162,7 +162,7 @@ class Runner(Npc):
             self.target_state = 0
             return True
 
-        if self.location != self.followee.location:
+        if not self.can_act_on(self.followee):
             # Hasn't reached the food yet, or stuck.. Will continue following.
             # It checks for this BEFORE stepping, which means it eats one tick after the final step,
             # and not on the final step tick?

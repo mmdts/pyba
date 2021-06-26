@@ -170,30 +170,52 @@ class RuleBasedHealer(RuleBasedAi):
     # -2 means we have to exhaust a stock waiting for call change.
     # Any number above TICK_THRESHOLD means we have to wait till that specific tick.
     CODES: List[List[int]] = [
+        # Wave 1
         # 1-1
         [-1] + [0] * 1 + [1] * 1,
+        # Wave 2
         # 1-2-4
         [-1] + [0] * 2 + [1] * 2 + [2] * 4,
+        # Wave 3
         # 1-6-1/2     -> 0-0-2/3
         [-1] + [0] * 1 + [1] * 6 + [2] * 4 + [0] * 1,
+        # Wave 4 (reg stock, no alch)
         # 1-4-3       -> 0-0-0-7
         [-1] + [0] * 1 + [1] * 4 + [2] * 3 + [3] * 7,
+        # Wave 5 (reg stock, no alch)
         # 1-5-2-1     -> 0-0-1-7
         [-1] + [0] * 1 + [1] * 5 + [2] * 1 + [3] * 1 + [2] * 1 +
                [4] * 3 + [3] * 1 + [4] * 4 + [3] * 1,
+        # Wave 6 (reg stock)
         # 2-4-1-1   -> 0-0-1-1-6-9
         [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [0] * 1 + [3] * 1 +
         [-1] + [2] * 1 + [4] * 2 + [5] * 5 + [3] * 1 + [4] * 4 + [5] * 4,
-        # 2-4-1-1   -> 1-1-1-1-4-1
+        # Wave 7 (reg stock)
+        # 2-4-1-1   -> 1-1-1-1-3-1
         [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [0] * 1 + [3] * 1 +
                [1] * 1 + [2] * 1 + [0] * 1 + [3] * 1 + [4] * 3 + [5] * 1 +
-        [-1] + [6] * 7 + [5] * 3 + [6] * 5
+        [-1] + [6] * 7 + [5] * 3 + [6] * 5,
+        # Wave 8
+        # 1-5-1-1   -> 1-1-1-1-2-1-1
+        [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [1] * 1 + [3] * 1 +
+               [4] * 1 + [0] * 1 + [2] * 1 + [3] * 1 + [1] * 2 + [4] * 1 + [5] * 1 +
+        [-1] + [6] * 3 + [4] * 3 + [5] * 3 + [6] * 6,
+        # Wave 9
+        # 2-4-1-1   -> 1-2-1-1-1-1-1
+        [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [0] * 1 + [3] * 1 +
+               [4] * 1 + [1] * 2 + [5] * 1 + [2] * 1 + [0] * 1 + [3] * 1 + [6] * 1 +
+        [-1] + [7] * 3 + [4] * 1 + [5] * 2 + [6] * 3 + [7] * 3,
     ]
 
     # On 1-4, we don't need to restock anyway.
     # On 5, we don't overstock yet.
-    # On 6-9, we don't overstock first call yet. We triple overstock when restocking.
-    STOCKS: List[List[int]] = [[0]] * 4 + [[0]] + [[0, 4]] + [[0, 3]] * 3
+    #
+    # On 6-9, we don't overstock first call yet.
+    # On 6, we quad stock 2nd call.
+    # On 7, we triple stock 3rd call.
+    # On 8, we double stock 3rd call.
+    # On 9, we single stock 3rd call.
+    STOCKS: List[List[int]] = [[0]] * 4 + [[0]] + [[0, 4]] + [[0, 3]] + [[0, 2]] + [[0, 1]]
 
     TICK_THRESHOLD = 20
 
@@ -254,6 +276,7 @@ class RuleBasedHealer(RuleBasedAi):
             return rv
 
         if self.current_state == S.SPAMMING_DOWN:
+            debug("RuleBasedHealer.do_new_action", f"{self.player} spamming down.")
             healers_alive = [healer for healer in self.healers if healer.is_alive()]
             if len(healers_alive) == 0:
                 return A.IDLE

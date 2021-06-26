@@ -125,39 +125,45 @@ class Penance:
     def _get_type(self, key: Union[Type[Npc], list, int, str]) -> Type:
         if isinstance(key, str):
             key = key.lower()
-        if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:
+        if isinstance(key, list):
+            key = id(key)
+        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
             return Fighter
-        if key in [Ranger, self.rangers, "rangers", "ranger", "s", 1]:
+        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
             return Ranger
-        if key in [Runner, self.runners, "runners", "runner", "d", 2]:
+        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
             return Runner
-        if key in [Healer, self.healers, "healers", "healer", "h", 3]:
+        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
             return Healer
         raise KeyError(f"Penance[{key}] does not exist.")
 
     def _get_letter(self, key: Union[Type[Npc], list, int, str]) -> str:
         if isinstance(key, str):
             key = key.lower()
-        if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:
+        if isinstance(key, list):
+            key = id(key)
+        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
             return "a"
-        if key in [Ranger, self.rangers, "rangers", "ranger", "s", 1]:
+        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
             return "s"
-        if key in [Runner, self.runners, "runners", "runner", "d", 2]:
+        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
             return "d"
-        if key in [Healer, self.healers, "healers", "healer", "h", 3]:
+        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
             return "h"
         raise KeyError(f"Penance[{key}] does not exist.")
 
     def _get_list(self, key: Union[Type[Npc], list, int, str]) -> List[Npc]:
         if isinstance(key, str):
             key = key.lower()
-        if key in [Fighter, self.fighters, "fighters", "fighter", "a", 0]:
+        if isinstance(key, list):
+            key = id(key)
+        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
             return self.fighters
-        if key in [Ranger, self.rangers, "rangers", "ranger", "s", 1]:
+        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
             return self.rangers
-        if key in [Runner, self.runners, "runners", "runner", "d", 2]:
+        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
             return self.runners
-        if key in [Healer, self.healers, "healers", "healer", "h", 3]:
+        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
             return self.healers
         raise KeyError(f"Penance[{key}] does not exist.")
 

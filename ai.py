@@ -181,9 +181,13 @@ class RuleBasedHealer(RuleBasedAi):
         # 1-5-2-1     -> 0-0-1-7
         [-1] + [0] * 1 + [1] * 5 + [2] * 1 + [3] * 1 + [2] * 1 +
                [4] * 3 + [3] * 1 + [4] * 4 + [3] * 1,
-        # 2-4-1/2-1   -> 0-0-1-1-6-9
+        # 2-4-1-1   -> 0-0-1-1-6-9
         [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [0] * 1 + [3] * 1 +
-        [-1] + [2] * 1 + [4] * 2 + [5] * 5 + [3] * 1 + [4] * 4 + [5] * 4
+        [-1] + [2] * 1 + [4] * 2 + [5] * 5 + [3] * 1 + [4] * 4 + [5] * 4,
+        # 2-4-1-1   -> 1-1-1-1-4-1
+        [-1] + [0] * 1 + [1] * 4 + [2] * 1 + [0] * 1 + [3] * 1 +
+               [1] * 1 + [2] * 1 + [0] * 1 + [3] * 1 + [4] * 3 + [5] * 1 +
+        [-1] + [6] * 7 + [5] * 3 + [6] * 5
     ]
 
     # On 1-4, we don't need to restock anyway.
@@ -226,6 +230,7 @@ class RuleBasedHealer(RuleBasedAi):
             self.stock_i += 1
             # If this is the last stock, we don't overstock, and we change state to S.PATHING.
             if self.stock_i == self.stocks[self.stocks_i]:
+                debug("RuleBasedHealer.do_new_action", f"{self.player} using dispenser for the last time.")
                 self.player.click_use_dispenser()
                 if self.stock_i == 0:
                     self.current_state = S.PATHING
@@ -233,15 +238,18 @@ class RuleBasedHealer(RuleBasedAi):
                     self.current_state = S.FOLLOWING_CODE
                 self.stock_i = -1
             else:
+                debug("RuleBasedHealer.do_new_action", f"{self.player} using dispenser.")
                 self.player.click_use_dispenser(self.call)
             return A.USING_DISPENSER
 
         if self.current_state == S.PATHING:
+            debug("RuleBasedHealer.do_new_action", f"{self.player} sliding.")
             self.player.click_move(E.SLIDE_TILE)
             self.current_state = S.FOLLOWING_CODE
             return A.RUNNING_TO_SLIDE
 
         if self.current_state == S.FOLLOWING_CODE:
+            debug("RuleBasedHealer.do_new_action", f"{self.player} following code.")
             self.current_state, rv = self.follow_code()
             return rv
 

@@ -1,9 +1,9 @@
 from typing import Dict, Callable, Union, Any
 
-from .base.terrain import C, Locatable, Inspectable
+from simulation.base.terrain import C, Locatable, Inspectable
 
 
-def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
+def build_emittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
     # TODO: Clean this up to only include transmittable stuff (inspects).
     if isinstance(x, Locatable):
         _dict = {
@@ -73,9 +73,9 @@ def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
         _dict = {
             "tick": x.tick,
             "text": x.text_payload,
-            "players": {k: build_transmittable_object_from(locatable) for k, locatable in x.players},
-            "print_map": x.arg.print_map(ret=True),
-            "original_map": x.arg.original_map,
+            "players": {k: build_emittable_object_from(locatable) for k, locatable in x.players},
+            "self_map": x.map,
+            "original_map": x.original_map,
             "wave": {
                 "correct_calls": x.wave.correct_calls,
                 "start_tick": x.wave.start_tick,
@@ -84,22 +84,22 @@ def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:
                 "number": x.wave.number,
                 "end_flag": x.wave.end_flag,
                 "game_objects": {
-                    "west_cannon": build_transmittable_object_from(x.wave.game_objects.west_cannon),
-                    "cannon": build_transmittable_object_from(x.wave.game_objects.cannon),
-                    "west_hopper": build_transmittable_object_from(x.wave.game_objects.west_hopper),
-                    "hopper": build_transmittable_object_from(x.wave.game_objects.hopper),
-                    "west_trap": build_transmittable_object_from(x.wave.game_objects.west_trap),
-                    "trap": build_transmittable_object_from(x.wave.game_objects.trap),
+                    "west_cannon": build_emittable_object_from(x.wave.game_objects.west_cannon),
+                    "cannon": build_emittable_object_from(x.wave.game_objects.cannon),
+                    "west_hopper": build_emittable_object_from(x.wave.game_objects.west_hopper),
+                    "hopper": build_emittable_object_from(x.wave.game_objects.hopper),
+                    "west_trap": build_emittable_object_from(x.wave.game_objects.west_trap),
+                    "trap": build_emittable_object_from(x.wave.game_objects.trap),
                 },
-                "dropped_food": [build_transmittable_object_from(locatable)
+                "dropped_food": [build_emittable_object_from(locatable)
                                  for locatable in x.wave.dropped_food],
-                "dispensers": {k: build_transmittable_object_from(locatable)
+                "dispensers": {k: build_emittable_object_from(locatable)
                                for k, locatable in x.wave.dispensers.items()},
-                "dropped_eggs": [build_transmittable_object_from(locatable)
+                "dropped_eggs": [build_emittable_object_from(locatable)
                                  for locatable in x.wave.dropped_eggs],
-                "dropped_hnls": [build_transmittable_object_from(locatable)
+                "dropped_hnls": [build_emittable_object_from(locatable)
                                  for locatable in x.wave.dropped_hnls],
-                "penance": {k: [build_transmittable_object_from(locatable)
+                "penance": {k: [build_emittable_object_from(locatable)
                                 for locatable in v] for k, v in x.wave.penance},
             }
         }

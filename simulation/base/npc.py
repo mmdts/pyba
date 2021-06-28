@@ -130,17 +130,17 @@ class Npc(Unit):
         single_step_x = relative.single_step_x()
         single_step_y = relative.single_step_y()
 
-        if start.can_npc_single_step(start + single_step_y + single_step_x):
+        if start.can_npc_single_step(start + single_step_y + single_step_x, self.game.block_map):
             # If we can step diagonally, or the tile is horizontal, we will.
             return start + single_step_x + single_step_y
 
         # If we can't step to the tile directly, let's try to step in x alone.
-        if start.can_npc_single_step(start + single_step_x):
+        if start.can_npc_single_step(start + single_step_x, self.game.block_map):
             # Unlike with the diagonal case this taxicab can_npc_single_step will never recurse.
             return start + single_step_x
 
         # Then in y alone.
-        if start.can_npc_single_step(start + single_step_y):
+        if start.can_npc_single_step(start + single_step_y, self.game.block_map):
             # Unlike with the diagonal case this taxicab can_npc_single_step will never recurse.
             return start + single_step_y
 
@@ -189,7 +189,7 @@ class Npc(Unit):
         return super().step()
 
     def can_single_step(self, destination: C) -> bool:
-        return self.location.can_npc_single_step(destination)
+        return self.location.can_npc_single_step(destination, self.game.block_map)
 
     def cant_single_step_callback(self, tile: C) -> None:
         # This method is called if the single step fails.

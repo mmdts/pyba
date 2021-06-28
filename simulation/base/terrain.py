@@ -97,11 +97,6 @@ F = {
     "C": "Y",
 }
 
-# A copy of map to set tiles on which players are standing as blocked, and check for them later.
-# Like the map above, do not interact with this directly, and use the Terrain functions provided:
-# Terrain.block, Terrain.unblock, Terrain.is_blocked
-BLOCK_MAP = MAP.copy()
-
 
 class C:  # Tile, Location, Displacement
     def __init__(self, x: Union[C, int], y: Optional[int] = None):
@@ -260,7 +255,7 @@ class C:  # Tile, Location, Displacement
 
         return rv
 
-    def can_single_step(self, destination: C, call_npc_function: bool = False) -> bool:
+    def can_single_step(self, destination: C, grid: Optional[List[str]] = None) -> bool:
         # We can only single step to a square that's king-movable (one of the eight squares around us).
         if self.chebyshev_to(destination) > 1:
             return False
@@ -288,28 +283,28 @@ class C:  # Tile, Location, Displacement
         x_tile = C(self.x + move.x, self.y)
         y_tile = C(self.x, self.y + move.y)
 
-        recursion_function: Callable = call_npc_function and self.can_npc_single_step or self.can_single_step
+        recursion_function: Callable = grid is not None and self.can_npc_single_step or self.can_single_step
 
         if self.chebyshev_to(destination) == 1 and \
-           recursion_function(x_tile) and \
-           recursion_function(y_tile) and \
+           recursion_function(x_tile, grid) and \
+           recursion_function(y_tile, grid) and \
            x_tile.can_single_step(destination) and \
            y_tile.can_single_step(destination):
             return True
 
         return False
 
-    def can_npc_single_step(self, destination: C) -> bool:
+    def can_npc_single_step(self, destination: C, grid: List[str]) -> bool:
         if Terrain.level_at(destination) > 1:
             # The penance cannot step on all cannon squares.
             return False
 
-        if Terrain.is_blocked(destination):
+        if Terrain.is_blocked(destination, grid):
             # The penance cannot step on a tile blocked by a player.
             # Note that a player stepping you unblocks the tile (Runescape mechanism).
             return False
 
-        return self.can_single_step(destination, call_npc_function=True)
+        return self.can_single_step(destination, grid)
 
     def can_single_see(self, destination: C) -> bool:
         # Very similar in mechanics for C.can_single_step, but for seeing.
@@ -557,6 +552,22 @@ class Inspectable:
             "Players is not set on this inspectable."
         return self.arg.players
 
+    @property
+    def map(self) -> List[str]:
+        return self.arg.render_map()
+
+    @property
+    def original_map(self) -> List[str]:
+        return MAP
+
+    @property
+    def block_map(self) -> List[str]:
+        return self.arg.block_map
+
+    @property
+    def player_map(self) -> List[str]:
+        return self.arg.render_map(players_only=True)
+
     def stall(self, action: Action) -> None:
         self.arg.players.main_attacker.stall_queue.append(action)
 
@@ -588,6 +599,8 @@ class Terrain:
     BLOCKED = "#qweyKkRrPX$"
     SIGHT_BLOCKED = "#qweyRr"
     HIGH_LEVEL = "^KkRr"
+    PENANCE = "@%&?"
+    PLAYERS = "EQZWY"
 
     @staticmethod
     def new() -> List[str]:
@@ -616,13 +629,31 @@ class Terrain:
         return MAP[tile.y][tile.x] not in Terrain.BLOCKED
 
     @staticmethod
+    def channel_occupiable(center: C, radius: int) -> List[List[int]]:
+        return [
+            [
+                Terrain.is_occupiable(center + C(i, j)) and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
+
+    @staticmethod
     def is_seeable(tile: C) -> bool:
         return MAP[tile.y][tile.x] not in Terrain.SIGHT_BLOCKED
 
     @staticmethod
-    def is_blocked(tile: C) -> bool:
+    def channel_seeable(center: C, radius: int) -> List[List[int]]:
+        return [
+            [
+                Terrain.is_seeable(center + C(i, j)) and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
+
+    @staticmethod
+    def is_blocked(tile: C, grid: List[str]) -> bool:
         # Returns true for a tile that is blocked by a player that hasn't been run through.
-        return BLOCK_MAP[tile.y][tile.x] == Terrain.BLOCKED_BY_PLAYER
+        return grid[tile.y][tile.x] == Terrain.BLOCKED_BY_PLAYER
 
     @staticmethod
     def set_letter(tile: C, letter: str, grid: Optional[List[str]] = None) -> None:
@@ -631,21 +662,50 @@ class Terrain:
         grid[tile.y] = grid[tile.y][:tile.x] + letter + grid[tile.y][tile.x + 1:]
 
     @staticmethod
-    def block(tile: C) -> None:
+    def block(tile: C, grid: List[str]) -> None:
         # Blocking by a player.
-        Terrain.set_letter(tile, Terrain.BLOCKED_BY_PLAYER, BLOCK_MAP)
+        Terrain.set_letter(tile, Terrain.BLOCKED_BY_PLAYER, grid)
 
     @staticmethod
-    def unblock(tile: C) -> None:
+    def unblock(tile: C, grid: List[str]) -> None:
         # Unblocking by a player.
-        Terrain.set_letter(tile, Terrain.letter_at(tile), BLOCK_MAP)
+        Terrain.set_letter(tile, Terrain.letter_at(tile), grid)
 
     @staticmethod
-    def letter_at(tile: C) -> str:
+    def letter_at(tile: C, grid: Optional[List[str]] = None) -> str:
+        if grid is None:
+            grid = MAP
         if 0 < tile.x < E.MAP_DIM.x and 0 < tile.y < E.MAP_DIM.y:
-            return MAP[tile.y][tile.x]
+            return grid[tile.y][tile.x]
 
         return "#"  # Out of bounds are all #.
+
+    @staticmethod
+    def channel_healers(center: C, radius: int, grid: List[str]) -> List[List[int]]:
+        return [
+            [
+                Terrain.letter_at(center + C(i, j), grid) == F["h"] and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
+
+    @staticmethod
+    def channel_runners(center: C, radius: int, grid: List[str]) -> List[List[int]]:
+        return [
+            [
+                Terrain.letter_at(center + C(i, j), grid) == F["d"] and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
+
+    @staticmethod
+    def channel_players(center: C, radius: int, grid: List[str]) -> List[List[int]]:
+        return [
+            [
+                Terrain.letter_at(center + C(i, j), grid) in Terrain.PLAYERS and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
 
     @staticmethod
     def level_at(tile: C) -> int:
@@ -655,6 +715,15 @@ class Terrain:
         if letter in ".":
             return 1
         return 0
+
+    @staticmethod
+    def channel_level(center: C, radius: int) -> List[List[int]]:
+        return [
+            [
+                Terrain.level_at(center + C(i, j)) == 2 and 1 or 0
+                for i in range(-radius, radius + 1)
+            ] for j in range(-radius, radius + 1)
+        ]
 
     @staticmethod
     def find(letter) -> Optional[C]:

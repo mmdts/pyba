@@ -55,7 +55,6 @@ class Penance:
                     self.game.wave.penance.set_due_to_spawn(npc.__class__, True)
                     # Handle penance extinction.
                     none_alive = [n.is_alive() for n in species].count(True) == 0
-                    print(none_alive)
                     if none_alive and self.spawns[key][1] == 0:
                         # In the real game, this message, along with the check for it, is stalled.
                         # Here, we want accurate statistics regardless of stall, so this message is always instant.

@@ -33,6 +33,8 @@ LM = Fore.LIGHTMAGENTA_EX
 # R and LR are used for errors.
 # None is used for anything Wave and above.
 ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
+    "General": Y,
+
     # "Interface.disconnect_handler": None,
     # "Interface.room_connect": None,
     # "EventHandler.handle": None,
@@ -47,6 +49,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "Healer.follow_code": G,
     "Healer.do_new_action": G,
 
+    "Ai.wait_current_action": C,
     # "Player.__call__": C,  # Just self.
     # "Player.__call__.busy_i": C,
     # "Player.path": C,
@@ -76,7 +79,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
 
 
 ALLOWED_GAME_PRINT_NAMESPACES: Dict[str, Optional[int]] = {
-    # "Game.print_map": None,
+    # "Game.render_map": None,
     # "Game.print_runners": None,
     "Penance.print": Y,
     "Player.print": Y,

@@ -12,7 +12,7 @@ export class Game {
             "tick": null,  // Check for tick when deciding whether the game exists.
             "text": [],
             "players": {},
-            "print_map": [],
+            "self_map": [],
             "original_map": [],
             "wave": {
                 "correct_calls": [],

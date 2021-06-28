@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Optional
 
+from log import debug
 from simulation.base.player import Player
 from simulation.base.terrain import Inspectable, C
 
@@ -82,7 +83,7 @@ class RuleBasedAi(Ai):
             # AI does not act if no wave is started.
             return
 
-        if not self.player.game.wave.relative_tick <= 1:
+        if self.player.game.wave.relative_tick <= 1:
             # AI does not have superhuman speed.
             return
 
@@ -122,4 +123,7 @@ class RuleBasedAi(Ai):
 
             return condition
 
+        if self.player.is_idle():
+            debug("Ai.wait_current_action", f"{self.player} waiting for the current action, "
+                                            f"{self.current_action}, finished.")
         return self.player.is_idle()

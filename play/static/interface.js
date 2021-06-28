@@ -240,7 +240,7 @@ export class Interface {
             }
         }
 
-        this.canvas.drawMapElements(this.game.print_map, this.droppedItemsPerGameTile, this.role);
+        this.canvas.drawMapElements(this.game.self_map, this.droppedItemsPerGameTile, this.role);
         if (this.role !== "_")
             this.canvas.drawInventory(this.player.access_letter, this.player.inventory, this.interactor.highlightedItem);
 

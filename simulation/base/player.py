@@ -46,7 +46,7 @@ class Player(Unit):
             (DroppedItem, self.pick_item, Unit.PRE),
             # Cannon
         ])
-        Terrain.block(self.location)
+        Terrain.block(self.location, self.game.block_map)
 
     def __call__(self) -> bool:
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).
@@ -212,8 +212,8 @@ class Player(Unit):
         location_changed = super().single_step()
 
         if location_changed:
-            Terrain.unblock(old_location)
-            Terrain.block(self.location)
+            Terrain.unblock(old_location, self.game.block_map)
+            Terrain.block(self.location, self.game.block_map)
             debug("Player.single_step", f"{self} successfully single stepped to {self.location}.")
 
         return location_changed

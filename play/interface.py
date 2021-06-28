@@ -7,6 +7,7 @@ from flask_socketio import SocketIO, join_room, leave_room
 
 from log import debug
 from simulation import EventHandler, Room
+from .emit import build_emittable_object_from
 
 # The architecture is:
 # ONE interface (not a class).
@@ -24,6 +25,20 @@ server: SocketIO = SocketIO(app, cors_allowed_origins="*")
 rooms: Dict[str, Room] = {}
 active_sids: Dict[str, str] = {}  # Maps from request.sid client ids to uuid room ids.
 event_handler = EventHandler()
+
+
+def emit(self) -> None:
+    # Should provide a full game state, ending on something that's Transmittable.
+    rv = json.dumps({
+        "game": build_emittable_object_from(self.game.inspectable),
+    })
+
+    self.game.inspectable.text_payload = []
+
+    return self.server.emit("game_state", rv, to=self.id)
+
+
+setattr(Room, "emit_state", emit)
 
 
 @server.on('disconnect')

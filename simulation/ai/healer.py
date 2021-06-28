@@ -130,6 +130,7 @@ class Healer(RuleBasedAi):
             self.player.click_use_poison_food(self.call, healers_alive[0])
             return A.USING_POISON
 
+        debug("Healer.do_new_action", f"{self.player} is idle. This should never happen.")
         return A.IDLE
 
     def follow_code(self) -> Tuple[int, int]:

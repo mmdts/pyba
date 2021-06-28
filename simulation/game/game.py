@@ -97,6 +97,10 @@ class Wave:
         )
 
     def change_call(self) -> None:
+        self.calls = {
+            "a": None, "c": None, "d": None, "h": None,
+        }
+
         for key in self.correct_calls:
             if self.correct_calls[key] is None:
                 if key == "a":
@@ -129,6 +133,8 @@ class Game:
 
         self.runner_movements: List[List[C]] = []
 
+        self.block_map: List[str] = Terrain.new()
+
     def start_new_wave(self, wave_number: int, runner_movements: List[List[C]]) -> None:
         self.set_new_players(self.original_ai)  # Keeps AI dictionary unmodified, resets players.
         assert 0 <= wave_number < 10, "The wave (0-indexed) should be between 0 and 9."
@@ -150,6 +156,7 @@ class Game:
         self.inspectable.uuids = []
         self.inspectable.locatables = []
         self.original_ai = ai
+        self.block_map: List[str] = Terrain.new()
 
         # Create new players.
         self.players: Players = Players(self.inspectable)
@@ -193,25 +200,25 @@ class Game:
 
         return True
 
-    def print_map(self, ret: bool = False) -> Optional[List[str]]:
+    def render_map(self, _print: bool = False, players_only: bool = False) -> List[str]:
         tmp = Terrain.new()
-        for key, player in self.players:
-            Terrain.set_letter(player.location, F[key.upper()], tmp)
+
+        if self.players is not None:
+            for key, player in self.players:
+                Terrain.set_letter(player.location, F[key.upper()], tmp)
 
         # Npcs render above Players to allow for interacting with said Npc. Never does a player need to interact
         # with another under the current assumptions (no wave 10, no healing).
-        for key, species in self.wave.penance:
-            for npc in species:
-                Terrain.set_letter(npc.location, F[key.lower()], tmp)
+        if self.wave is not None and not players_only:
+            for key, species in self.wave.penance:
+                for npc in species:
+                    Terrain.set_letter(npc.location, F[key.lower()], tmp)
 
-        if ret:
-            return tmp
-        Terrain.print(tmp)
-        game_print("Game.print_map", self.wave.relative_tick)
+        if _print:
+            Terrain.print(tmp)
+            game_print("Game.render_map", self.wave.relative_tick)
 
-    @property
-    def original_map(self) -> List[str]:
-        return Terrain.new()
+        return tmp
 
     def print_runners(self) -> None:
         game_print("Game.print_runners", *(f"    {runner}\n" for runner in self.wave.penance.runners))

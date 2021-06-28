@@ -1,15 +1,13 @@
 import traceback
-from typing import Callable, List, Dict, Optional, Type
+from typing import Callable, List, Dict, Optional, Type, Any
 from flask_socketio import SocketIO
 from threading import Thread
-import json
 
 from log import debug
 from .base.player import Player
 from .base.terrain import Action
 from .game import Game
 from .ai import Healer, Ai
-from .interface_transmit import build_transmittable_object_from
 
 
 class Room:
@@ -64,16 +62,22 @@ class Room:
 
             self.thread = Thread(target=run, args=(self,))
             self.thread.start()
+            return None
         if self.mode == Room.PAUSE:
-            self.iterate()
+            return self.iterate()
 
-    def iterate(self) -> None:
+    def emit_state(self) -> Any:
+        raise NotImplementedError("Whatever imports Room should settattr(Room, \"emit_state\", some_method) to it.")
+
+    def iterate(self) -> Optional[Any]:
         assert self.is_alive, "Room died. Please start a new one."
+        rv = None
         self.exhaust_queue()
         if self.game.wave is not None:
             if self.game():  # The game call happens here!
                 self.blocking_action = False  # A tick passed, now actions can happen again.
-                self.transmit()
+                if isinstance(self.emit_state, Callable):
+                    rv = self.emit_state()
             else:
                 self.game.wave = None
                 self.blocking_action = True
@@ -82,15 +86,7 @@ class Room:
             # ANY CUSTOM PLAYER CODE GOES HERE!
             pass
 
-    def transmit(self) -> None:
-        # Should provide a full game state, ending on something that's Transmittable.
-        rv = json.dumps({
-            "game": build_transmittable_object_from(self.game.inspectable),
-        })
-
-        self.game.inspectable.text_payload = []
-
-        return self.server.emit("game_state", rv, to=self.id)
+        return rv
 
     def get_player(self, client_id: str) -> Optional[Player]:
         for role in self.clients_by_role:

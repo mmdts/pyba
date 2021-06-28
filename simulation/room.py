@@ -4,12 +4,12 @@ from flask_socketio import SocketIO
 from threading import Thread
 import json
 
-from ai import RuleBasedHealer, Ai
-from game import Game
-from interface_transmit import build_transmittable_object_from
 from log import debug
-from player import Player
-from terrain import Action
+from .base.player import Player
+from .base.terrain import Action
+from .game import Game
+from .ai import Healer, Ai
+from .interface_transmit import build_transmittable_object_from
 
 
 class Room:
@@ -31,7 +31,7 @@ class Room:
 
         self.ai: Dict[str, Optional[Type[Ai]]] = {
             # "c": RuleBasedCollector,
-            "h": RuleBasedHealer,
+            "h": Healer,
         }
 
         self.game: Game = Game()
@@ -51,7 +51,7 @@ class Room:
 
                     try:
                         room.iterate()
-                    except (TypeError, AssertionError, AttributeError, NotImplementedError, KeyError) as e:
+                    except (TypeError, AssertionError, AttributeError, NotImplementedError, KeyError) as _:
                         debug("Room.__call__", "Encountered an error. Resetting game.")
                         traceback.print_exc()
                         room.game = Game()

@@ -1,4 +1,4 @@
-from terrain import Locatable, C, D, E, Inspectable
+from .terrain import Locatable, C, D, E, Inspectable
 
 
 # No logic exists here. All the DroppedItem logic exists in the Players' or Npcs' respective classes.

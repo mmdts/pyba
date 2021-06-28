@@ -1,5 +1,6 @@
 from typing import Dict, Callable, Union, Any
-from terrain import C, Locatable, Inspectable
+
+from .base.terrain import C, Locatable, Inspectable
 
 
 def build_transmittable_object_from(x: Union[Locatable, Inspectable]) -> Dict:

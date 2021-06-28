@@ -1,10 +1,10 @@
 from typing import List, Callable, Optional, Dict, Tuple
 
-from room import Room
 from log import debug
-from role_player import Defender, Healer, Collector, MainAttacker, SecondAttacker
-from player import Player
-from terrain import C, Terrain
+from .base.player import Player
+from .base.terrain import C, Terrain
+from .player import Defender, Healer, Collector, MainAttacker, SecondAttacker
+from .room import Room
 
 
 class EventHandler:

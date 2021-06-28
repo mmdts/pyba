@@ -1,26 +1,24 @@
 from typing import List, Tuple, Union, Type, Dict
 
-from terrain import Terrain, Inspectable, C
-from npc import Npc
-from runner import Runner
-from healer import Healer
-from combat_npc import Fighter, Ranger
+from simulation.base.terrain import Terrain, Inspectable, C
+from simulation.base.npc import Npc
+from simulation import penance
 
 
 class Penance:
     def __init__(self, game: Inspectable):
         self.game = game
-        self.fighters: List[Fighter] = []
-        self.rangers: List[Ranger] = []
-        self.runners: List[Runner] = []
-        self.healers: List[Healer] = []
+        self.fighters: List[penance.Fighter] = []
+        self.rangers: List[penance.Ranger] = []
+        self.runners: List[penance.Runner] = []
+        self.healers: List[penance.Healer] = []
 
         # A dictionary of lists with two items each, the first for spawns and the second for reserves.
         self.spawns: Dict[str, List[int]] = {
-            "a": [*Fighter.SPAWNS[self.game.wave.number]],
-            "s": [*Ranger.SPAWNS[self.game.wave.number]],
-            "d": [*Runner.SPAWNS[self.game.wave.number]],
-            "h": [*Healer.SPAWNS[self.game.wave.number]],
+            "a": [*penance.Fighter.SPAWNS[self.game.wave.number]],
+            "s": [*penance.Ranger.SPAWNS[self.game.wave.number]],
+            "d": [*penance.Runner.SPAWNS[self.game.wave.number]],
+            "h": [*penance.Healer.SPAWNS[self.game.wave.number]],
         }
 
         # Penance monsters are due to spawn at different times.
@@ -69,7 +67,7 @@ class Penance:
                     # Handle penance death.
                     if len(species) > 0:
                         species.pop(i)
-                    if not isinstance(npc, Runner) or not npc.has_escaped:
+                    if not isinstance(npc, penance.Runner) or not npc.has_escaped:
                         self.game.wave.print(f"{npc.name} death animation finished "
                                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
                     # Spawn eggs
@@ -109,7 +107,7 @@ class Penance:
         if tick is not None:
             new_species.name = f"{Terrain.tick_to_string(tick):0>3}" + " " + new_species.default_name
 
-        if isinstance(new_species, Runner):
+        if isinstance(new_species, penance.Runner):
             # Runner forced movements can be set using the set_runner_movements function.
             if len(self.runner_movements) > 0:
                 new_species.forced_movements = self.runner_movements.pop(0)
@@ -122,50 +120,29 @@ class Penance:
     def set_due_to_spawn(self, key: Union[Type[Npc], list, int, str], value: bool) -> None:
         self._due_to_spawn[self._get_letter(key)] = value
 
-    def _get_type(self, key: Union[Type[Npc], list, int, str]) -> Type:
+    def _get(self, key: Union[Type[Npc], list, int, str], choices: List):
         if isinstance(key, str):
             key = key.lower()
         if isinstance(key, list):
             key = id(key)
-        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
-            return Fighter
-        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
-            return Ranger
-        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
-            return Runner
-        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
-            return Healer
+        if key in [penance.Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
+            return choices[0]
+        if key in [penance.Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
+            return choices[1]
+        if key in [penance.Runner, id(self.runners), "runners", "runner", "d", 2]:
+            return choices[2]
+        if key in [penance.Healer, id(self.healers), "healers", "healer", "h", 3]:
+            return choices[3]
         raise KeyError(f"Penance[{key}] does not exist.")
+
+    def _get_type(self, key: Union[Type[Npc], list, int, str]) -> Type:
+        return self._get(key, [penance.Fighter, penance.Ranger, penance.Runner, penance.Healer])
 
     def _get_letter(self, key: Union[Type[Npc], list, int, str]) -> str:
-        if isinstance(key, str):
-            key = key.lower()
-        if isinstance(key, list):
-            key = id(key)
-        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
-            return "a"
-        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
-            return "s"
-        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
-            return "d"
-        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
-            return "h"
-        raise KeyError(f"Penance[{key}] does not exist.")
+        return self._get(key, ["a", "s", "d", "h"])
 
     def _get_list(self, key: Union[Type[Npc], list, int, str]) -> List[Npc]:
-        if isinstance(key, str):
-            key = key.lower()
-        if isinstance(key, list):
-            key = id(key)
-        if key in [Fighter, id(self.fighters), "fighters", "fighter", "a", 0]:
-            return self.fighters
-        if key in [Ranger, id(self.rangers), "rangers", "ranger", "s", 1]:
-            return self.rangers
-        if key in [Runner, id(self.runners), "runners", "runner", "d", 2]:
-            return self.runners
-        if key in [Healer, id(self.healers), "healers", "healer", "h", 3]:
-            return self.healers
-        raise KeyError(f"Penance[{key}] does not exist.")
+        return self._get(key, [self.fighters, self.rangers, self.runners, self.healers])
 
     def count_alive(self) -> int:
         rv = 0

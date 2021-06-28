@@ -3,8 +3,8 @@ from abc import abstractmethod
 from typing import List, Tuple
 
 from log import game_print, J, LC
-from terrain import Locatable, C, Inspectable, Targeting, D
-from unit import Unit
+from .terrain import Locatable, C, Inspectable, Targeting, D
+from .unit import Unit
 
 
 class Npc(Unit):

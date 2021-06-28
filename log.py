@@ -44,8 +44,8 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Defender.repair_trap": B,
 
     "Healer.use_poison_food": G,
-    "RuleBasedHealer.follow_code": G,
-    "RuleBasedHealer.do_new_action": G,
+    "Healer.follow_code": G,
+    "Healer.do_new_action": G,
 
     # "Player.__call__": C,  # Just self.
     # "Player.__call__.busy_i": C,

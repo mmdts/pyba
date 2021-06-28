@@ -1,8 +1,8 @@
 from typing import Tuple, Union, List
 
-from player import Player
-from role_player import MainAttacker, SecondAttacker, Healer, Collector, Defender
-from terrain import Inspectable
+from simulation.base.player import Player
+from simulation.base.terrain import Inspectable
+from simulation import player
 
 
 class Players:
@@ -10,11 +10,11 @@ class Players:
     # All other methods should be passed the parameters they need explicitly!
     def __init__(self, game: Inspectable):
         self.game: Inspectable = game
-        self.main_attacker: MainAttacker = MainAttacker(self.game)
-        self.second_attacker: SecondAttacker = SecondAttacker(self.game)
-        self.healer: Healer = Healer(self.game)
-        self.collector: Collector = Collector(self.game)
-        self.defender: Defender = Defender(self.game)
+        self.main_attacker: player.MainAttacker = player.MainAttacker(self.game)
+        self.second_attacker: player.SecondAttacker = player.SecondAttacker(self.game)
+        self.healer: player.Healer = player.Healer(self.game)
+        self.collector: player.Collector = player.Collector(self.game)
+        self.defender: player.Defender = player.Defender(self.game)
 
         self.main_attacker.calls_with = self.collector
         self.second_attacker.calls_with = self.collector
@@ -47,8 +47,8 @@ class Players:
         raise KeyError(f"Players[{key}] does not exist.")
 
     def __call__(self) -> bool:
-        for key, player in self:
-            if not player():
+        for key, _player in self:
+            if not _player():
                 # Returns False if any player dies, a condition for wave end.
                 # However, right now, players cannot die and will always return True,
                 # making this if statement never execute, so we don't need to worry here.

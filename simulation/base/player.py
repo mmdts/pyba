@@ -3,11 +3,11 @@ from collections import deque
 from random import random
 from typing import Optional, List
 
-from dispenser import Dispenser
-from dropped_item import DroppedItem
 from log import debug, J, C as LOG_C, game_print
-from terrain import Terrain, C, Inspectable, Y, Locatable, D
-from unit import Unit, POST, PRE
+from .dispenser import Dispenser
+from .dropped_item import DroppedItem
+from .terrain import Terrain, C, Inspectable, Y, Locatable, D
+from .unit import Unit
 
 
 # All manual player actions should ideally start with the click_ prefix, and they are:
@@ -42,8 +42,8 @@ class Player(Unit):
         self.inventory: List[str] = [Y.HORN] + [Y.EMPTY] * (Player.INVENTORY_SPACE - 1)
         self.busy_i: int = 0
         self.actions.extend([
-            (Dispenser, self.use_dispenser, PRE),
-            (DroppedItem, self.pick_item, PRE),
+            (Dispenser, self.use_dispenser, Unit.PRE),
+            (DroppedItem, self.pick_item, Unit.PRE),
             # Cannon
         ])
         Terrain.block(self.location)
@@ -57,7 +57,7 @@ class Player(Unit):
         if self.refollow():
             self.move(self.destination)
 
-        self.act(PRE)
+        self.act(Unit.PRE)
         self.step()
         self.act()
 
@@ -241,14 +241,17 @@ class Player(Unit):
     @property
     def required_call(self) -> int:
         # Required to SEND!
+        assert self.calls_with is not None, "We cannot access this property if self.calls_with is not set."
         return self.game.wave.correct_calls[self.calls_with.access_letter()]
 
     @property
     def sent_call(self) -> int:
+        assert self.calls_with is not None, "We cannot access this property if self.calls_with is not set."
         return self.game.wave.calls[self.calls_with.access_letter()]
 
     @sent_call.setter
     def sent_call(self, value: int) -> None:
+        assert self.calls_with is not None, "We cannot access this property if self.calls_with is not set."
         self.game.wave.calls[self.calls_with.access_letter()] = value
 
     @property

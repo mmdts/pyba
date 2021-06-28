@@ -1,4 +1,4 @@
-from terrain import Locatable, C, D, E, Inspectable
+from .terrain import Locatable, C, D, E, Inspectable
 
 
 class GameObject(Locatable):

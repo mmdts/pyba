@@ -1,10 +1,10 @@
 from typing import List, Tuple, Optional
 
 from log import LM, J
-from player import Player
-from terrain import C, E, Inspectable
-from npc import Npc
-from unit import PRE
+from simulation.base.player import Player
+from simulation.base.terrain import C, E, Inspectable
+from simulation.base.npc import Npc
+from simulation.base.unit import Unit
 
 
 class CombatNpc(Npc):
@@ -21,7 +21,7 @@ class CombatNpc(Npc):
         self.followee: Optional[Player] = None  # Followee is already defined, but we're overriding the type check.
         self.tagger: Optional[Player] = None  # Attacker sets himself as tagger if attacking in the first cycle.
         self.actions.extend([
-            (Player, self.do_nothing, PRE),
+            (Player, self.do_nothing, Unit.PRE),
         ])
 
     def str_info(self) -> str:

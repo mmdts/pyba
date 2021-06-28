@@ -1,4 +1,4 @@
-# TODO: BUILD meaningful tests.
+# TODO: BUILD meaningful tests that try methods out and expect certain death times that match with the real game's.
 
 
 # # Shir's method on wave 1 with two south runners.

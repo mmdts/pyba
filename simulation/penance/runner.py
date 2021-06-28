@@ -1,11 +1,11 @@
 from random import random
 from typing import List, Tuple, Optional
 
-from game_object import Trap
 from log import debug, J, LB
-from terrain import Terrain, C, D, E, Inspectable, Locatable
-from npc import Npc
-from dropped_item import Food
+from simulation.base.game_object import Trap
+from simulation.base.terrain import Terrain, C, D, E, Inspectable, Locatable
+from simulation.base.npc import Npc
+from simulation.base.dropped_item import Food
 
 
 # TODO: BUILD blughing.

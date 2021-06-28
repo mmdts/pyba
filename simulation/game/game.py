@@ -1,16 +1,16 @@
 from random import random
 from typing import List, Dict, Type, Union, Optional
 
-from ai import Ai
-from dispenser import AttackerDispenser, DefenderDispenser, HealerDispenser, CollectorDispenser
-from game_object import GameObjects
 from log import debug, game_print
-from dropped_item import Food, Egg, Logs, Hammer
-from penance import Penance
-from player import Player
-from players import Players
-from role_player import Attacker
-from terrain import Inspectable, Terrain, F, C
+from simulation.ai import Ai
+from simulation.base.dispenser import AttackerDispenser, DefenderDispenser, HealerDispenser, CollectorDispenser
+from simulation.base.game_object import GameObjects
+from simulation.base.dropped_item import Food, Egg, Logs, Hammer
+from simulation.base.terrain import Inspectable, Terrain, F, C
+from simulation.base.player import Player
+from simulation.player.attacker import Attacker
+from .penance import Penance
+from .players import Players
 
 
 class Wave:

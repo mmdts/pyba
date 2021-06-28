@@ -5,9 +5,8 @@ from uuid import UUID
 from flask import Flask, request
 from flask_socketio import SocketIO, join_room, leave_room
 
-from event_handler import EventHandler
 from log import debug
-from room import Room
+from simulation import EventHandler, Room
 
 # The architecture is:
 # ONE interface (not a class).
@@ -135,3 +134,21 @@ def room_connect(room_id: str, client_id: str, role: str) -> bool:
 
     active_sids[client_id] = room_id
     return True
+
+
+def kill_rooms() -> None:
+    for room_id in rooms:
+        if rooms[room_id].thread is not None:
+            rooms[room_id].thread.join()
+        rooms[room_id].thread = None
+
+
+def run() -> None:
+    # The exported function. This is the only thing anything outside this package needs to know about it.
+    server.run(app)
+
+
+def stop() -> None:
+    # Currently, flask socketio servers have no way to stop gracefully except through a call from a client.
+    server.stop()
+    kill_rooms()

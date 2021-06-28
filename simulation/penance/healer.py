@@ -2,11 +2,11 @@ import math
 from typing import List, Tuple, Union, Optional
 
 from log import debug, J, LG
-from player import Player
-from runner import Runner
-from terrain import E, Inspectable, Targeting
-from npc import Npc
-from unit import Unit, POST
+from simulation.base.player import Player
+from simulation.base.terrain import E, Inspectable, Targeting
+from simulation.base.npc import Npc
+from simulation.base.unit import Unit
+from .runner import Runner
 
 
 # This is VERY SIMPLE CODE that reproduces the "0 hitsplat" and "poison syncing" effects. It has to do with
@@ -44,8 +44,8 @@ class Healer(Npc):
         self.poison_start_tick = 0
         self.no_follow_i: int = 0
         self.actions.extend([
-            (Player, self.switch_followee_state, POST),
-            (Runner, self.switch_followee_state, POST),
+            (Player, self.switch_followee_state, Unit.POST),
+            (Runner, self.switch_followee_state, Unit.POST),
         ])
 
         if "h" in self.game.ai and self.game.ai["h"] is not None:

@@ -5,10 +5,7 @@ from typing import Optional, List, Deque, Tuple, Type, Callable
 from collections import deque
 
 from log import debug, J, C as LOG_C
-from terrain import Terrain, C, D, Locatable, Inspectable
-
-PRE: bool = False
-POST: bool = True
+from .terrain import Terrain, C, D, Locatable, Inspectable
 
 
 class Unit(Locatable):
@@ -19,6 +16,8 @@ class Unit(Locatable):
     # Action distance is inclusive (compared with <= or >=)
     ACTION_DISTANCE: int = 15
     SAFE_ACTION_DISTANCE: int = 16
+    PRE: bool = False
+    POST: bool = True
 
     # ONLY click_ AND inspect_ METHODS AND __init__ AND __call__ SHOULD USE THE self.game VARIABLE!!
     # All other methods should be passed the parameters they need explicitly!

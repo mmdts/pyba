@@ -67,19 +67,19 @@ def build_emittable_object_from(x: Player) -> Dict[str, torch.Tensor]:
 
         "dropped_food": torch.Tensor([
             [food.location.x, food.location.y] + FOODS[food.which]
-            for food in x.game.wave.dropped_foodplayers
+            for food in x.game.wave.dropped_food
             if food.location.chebyshev_to(x.location) < Player.ACTION_DISTANCE
         ], dtype=torch.float32),
 
         "runners": torch.Tensor([
             [runner.location.x, runner.location.y, runner.hitpoints]
-            for runner in x.game.wave.penance.runnersplayers
+            for runner in x.game.wave.penance.runners
             if runner.location.chebyshev_to(x.location) < Player.ACTION_DISTANCE
         ], dtype=torch.float32),
 
         "healers": torch.Tensor([
             [healer.location.x, healer.location.y, healer.hitpoints] + target_info(healer)
-            for healer in x.game.wave.penance.healersplayers
+            for healer in x.game.wave.penance.healers
             if healer.location.chebyshev_to(x.location) < Player.ACTION_DISTANCE
         ], dtype=torch.float32),
 

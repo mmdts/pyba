@@ -65,7 +65,8 @@ class CombatNpc(Npc):
 
 class Fighter(CombatNpc):
     HITPOINTS: List[int] = [28, 29, 32, 37, 38, 49, 50, 55, 56, 50]
-    SPAWNS: List[Tuple[int, int]] = [(2, 2), (2, 3), (5, 0), (5, 1), (3, 3), (5, 1), (5, 2), (7, 0), (6, 2), (5, 2)]
+    # SPAWNS: List[Tuple[int, int]] = [(2, 2), (2, 3), (5, 0), (5, 1), (3, 3), (5, 1), (5, 2), (7, 0), (6, 2), (5, 2)]
+    SPAWNS: List[Tuple[int, int]] = [(0, 0)] * 9  # We won't spawn fighters and rangers for now.
     DEFENCE: List[int] = [25, 27, 34, 37, 44, 48, 52, 62, 66, 52]
 
     ATTACK_RANGE: int = 1
@@ -76,7 +77,8 @@ class Fighter(CombatNpc):
 
 class Ranger(CombatNpc):
     HITPOINTS: List[int] = [20, 28, 29, 34, 41, 50, 50, 54, 58, 50]
-    SPAWNS: List[Tuple[int, int]] = [(2, 2), (3, 1), (3, 3), (3, 3), (5, 1), (5, 2), (6, 1), (5, 3), (7, 1), (6, 1)]
+    # SPAWNS: List[Tuple[int, int]] = [(2, 2), (3, 1), (3, 3), (3, 3), (5, 1), (5, 2), (6, 1), (5, 3), (7, 1), (6, 1)]
+    SPAWNS: List[Tuple[int, int]] = [(0, 0)] * 9  # We won't spawn fighters and rangers for now.
     DEFENCE: List[int] = [21, 29, 33, 42, 46, 54, 61, 68, 80, 61]
 
     ATTACK_RANGE: int = 6

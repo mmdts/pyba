@@ -3,8 +3,8 @@ from colorama import init, Fore, Back
 
 init()
 
-DEBUG: bool = False
-GAME_PRINT: bool = False
+DEBUG: bool = True
+GAME_PRINT: bool = True
 J = Fore.RESET
 K = Back.RESET
 X = Back.BLACK
@@ -34,6 +34,7 @@ LM = Fore.LIGHTMAGENTA_EX
 # None is used for anything Wave and above.
 ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "General": Y,
+    # "Env.step": C,
 
     # "Interface.disconnect_handler": None,
     # "Interface.room_connect": None,
@@ -45,11 +46,11 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Defender.click_repair_trap": B,
     # "Defender.repair_trap": B,
 
-    "Healer.use_poison_food": G,
-    "Healer.follow_code": G,
-    "Healer.do_new_action": G,
-
-    "Ai.wait_current_action": C,
+    # "Healer.use_poison_food": G,
+    # "Healer.follow_code": G,
+    # "Healer.do_new_action": G,
+    #
+    # "Ai.wait_current_action": C,
     # "Player.__call__": C,  # Just self.
     # "Player.__call__.busy_i": C,
     # "Player.path": C,
@@ -67,9 +68,9 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Runner.tick_target": LB,
     # "Runner.walk": LB,
 
-    "Healer.do_cycle": LG,
-    "Healer.do_cycle.poison": LG,
-    "Healer.apply_poison": LG,
+    # "Healer.do_cycle": LG,
+    # "Healer.do_cycle.poison": LG,
+    # "Healer.apply_poison": LG,
     # "Healer.do_cycle.random": LG,
     # "Healer.do_cycle.followee": LG,
     # "Healer.switch_followee": LG,

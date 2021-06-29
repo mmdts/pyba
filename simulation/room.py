@@ -1,6 +1,5 @@
 import traceback
 from typing import Callable, List, Dict, Optional, Type, Any
-from flask_socketio import SocketIO
 from threading import Thread
 
 from log import debug
@@ -16,20 +15,19 @@ class Room:
     PAUSE = 1  # Pauses for confirmation between ticks. Deactivate this if using a GUI.
     F_FWD = 2  # Fast forwards. Useful for training a bot.
 
-    def __init__(self, _id: str, server: SocketIO):
+    def __init__(self, _id: Optional[str] = None, sleep_fn: Optional[Callable] = None, mode: int = DELAY):
         self.is_alive: bool = True
         self.thread: Optional[Thread] = None
         # This room is related to a socketio room. The id (base64 encoded) is considered the room number.
         # The first player to connect to the room creates it, and defines a room id.
-        self.id: str = _id
+        self.id: Optional[str] = _id
         # Connected SocketIO clients.
         self.clients_by_role: Dict[str, Optional[str]] = {"d": None, "a": None, "s": None, "c": None, "h": None}
         self.clients_by_id: Dict[str, bool] = {}  # The one that has the True is the room initiator.
-        self.server: SocketIO = server
+        self.sleep_fn: Optional[Callable] = sleep_fn
 
         self.ai: Dict[str, Optional[Type[Ai]]] = {
-            # "c": RuleBasedCollector,
-            "h": Healer,
+            # "h": Healer,
         }
 
         self.game: Game = Game()
@@ -37,9 +35,11 @@ class Room:
         self.game.set_new_players(self.ai)  # TODO: No AI. Fix this when AI is implemented.
 
         self.blocking_action = False  # Flips to true on the first tick of new_wave action.
-        self.mode: int = Room.DELAY
+        self.mode: int = mode
 
-    def __call__(self) -> None:
+        self.extra = None  # deep.Env uses this for emit purposes.
+
+    def __call__(self) -> Optional[Any]:
         if self.mode == Room.DELAY or self.mode == Room.F_FWD:
             assert self.thread is None, "You tried calling the room when the thread already exists!"
 
@@ -56,7 +56,8 @@ class Room:
                         self.game.set_new_players(self.ai)
 
                     if room.mode == Room.DELAY:
-                        room.server.sleep(Room.DELAY_DURATION)
+                        if room.sleep_fn is not None:
+                            room.sleep_fn(Room.DELAY_DURATION)
                     if room.mode == Room.PAUSE:
                         break
 
@@ -66,7 +67,7 @@ class Room:
         if self.mode == Room.PAUSE:
             return self.iterate()
 
-    def emit_state(self) -> Any:
+    def emit_state(self) -> Optional[Any]:
         raise NotImplementedError("Whatever imports Room should settattr(Room, \"emit_state\", some_method) to it.")
 
     def iterate(self) -> Optional[Any]:

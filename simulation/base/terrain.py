@@ -499,7 +499,7 @@ class InspectableWave:
 class Inspectable:
     CYCLE: int = 10  # The penance cycle
     CALL: int = 5 * CYCLE  # A call is 5 cycles
-    WAVE: int = 6 * CALL  # We force a wave to end on 6 calls to prevent an infinite loop if the players just idle.
+    WAVE: int = 10 * CALL  # We force a wave to end on 10 calls to prevent an infinite loop if the players just idle.
 
     # This class is used for accessing the game object on the __call__ function of lower classes in the hierarchy.
     # What basically happens is that every class passes the game inspectable down a level when calling
@@ -626,7 +626,7 @@ class Terrain:
 
     @staticmethod
     def is_occupiable(tile: C) -> bool:
-        return MAP[tile.y][tile.x] not in Terrain.BLOCKED
+        return Terrain.letter_at(tile) not in Terrain.BLOCKED
 
     @staticmethod
     def channel_occupiable(center: C, radius: int) -> List[List[int]]:
@@ -639,7 +639,7 @@ class Terrain:
 
     @staticmethod
     def is_seeable(tile: C) -> bool:
-        return MAP[tile.y][tile.x] not in Terrain.SIGHT_BLOCKED
+        return Terrain.letter_at(tile) not in Terrain.SIGHT_BLOCKED
 
     @staticmethod
     def channel_seeable(center: C, radius: int) -> List[List[int]]:
@@ -709,7 +709,7 @@ class Terrain:
 
     @staticmethod
     def level_at(tile: C) -> int:
-        letter = MAP[tile.y][tile.x]
+        letter = Terrain.letter_at(tile)
         if letter in Terrain.HIGH_LEVEL:
             return 2
         if letter in ".":

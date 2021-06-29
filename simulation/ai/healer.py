@@ -3,7 +3,6 @@ from typing import List, Tuple
 from log import debug
 from simulation.base.terrain import Inspectable, E, D
 from simulation import player
-from simulation import penance
 from .ai import A, S, RuleBasedAi
 
 
@@ -65,7 +64,6 @@ class Healer(RuleBasedAi):
         super().__init__(game)
         self.player: player.Healer = self.game.players.healer
 
-        self.healers: List[penance.Healer] = []
         self.codes_i = -1  # The poison food usage / delay / stock in the code we're currently following.
         self.stock_i = -1  # The number of times we've overstocked in a specific stock session.
         self.stocks_i = -1  # The number of stock sessions we've had.
@@ -81,11 +79,11 @@ class Healer(RuleBasedAi):
         # While waiting, we always try to move close to the next healer we want to poison.
         if self.codes_i + 1 >= len(self.codes):
             return
-        if self.codes[self.codes_i + 1] >= len(self.healers):
+        if self.codes[self.codes_i + 1] >= len(self.player.healers):
             self.target_location = E.PENANCE_HEALER_SPAWN + D.SE
             self.player.click_move(self.target_location)
             return
-        self.target_location = self.player.get_closest_adjacent_square_to(self.healers[self.codes[self.codes_i + 1]])
+        self.target_location = self.player.get_closest_adjacent_square_to(self.player.healers[self.codes[self.codes_i + 1]])
         self.player.click_move(self.target_location)
 
     def do_new_action(self) -> int:
@@ -122,7 +120,7 @@ class Healer(RuleBasedAi):
 
         if self.current_state == S.SPAMMING_DOWN:
             debug("Healer.do_new_action", f"{self.player} spamming down.")
-            healers_alive = [healer for healer in self.healers if healer.is_alive()]
+            healers_alive = [healer for healer in self.player.healers if healer.is_alive()]
             if len(healers_alive) == 0:
                 return A.IDLE
 
@@ -151,7 +149,7 @@ class Healer(RuleBasedAi):
         # If the code tells us to poison a healer, we see if we have poison left.
         if self.codes[self.codes_i] < Healer.TICK_THRESHOLD:
             # If the healer hasn't spawned yet, we wait.
-            if self.codes[self.codes_i] >= len(self.healers):
+            if self.codes[self.codes_i] >= len(self.player.healers):
                 self.codes_i -= 1  # We repeat this code when it's time.
                 self.target_tick = \
                     (
@@ -160,7 +158,7 @@ class Healer(RuleBasedAi):
                 return S.FOLLOWING_CODE, A.WAITING_FOR_TICK
             # If we have poison left, we poison the healer.
             if str(self.call) in self.player.inventory:
-                self.player.click_use_poison_food(self.call, self.healers[self.codes[self.codes_i]])
+                self.player.click_use_poison_food(self.call, self.player.healers[self.codes[self.codes_i]])
                 return S.FOLLOWING_CODE, A.USING_POISON
             # If not, we wait till the call changes.
             self.target_tick = \

@@ -23,6 +23,9 @@ class Healer(Player):
             (penance.Healer, self.use_poison_food, Unit.POST),
         ])
 
+        # This array persists healers even after they die.
+        self.healers: List[penance.Healer] = []
+
     @staticmethod
     def access_letter() -> str:
         return "h"

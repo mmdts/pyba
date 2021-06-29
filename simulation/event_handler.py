@@ -76,7 +76,7 @@ class EventHandler:
     }
 
     HEALER_ACTIONS = {
-        # args: which, target
+        # args: which, target_uuid
         "click_use_poison_food": (
             lambda args: len(args) == 2,
             lambda args, player: (args[0], player.game.find_by_uuid(args[1]))

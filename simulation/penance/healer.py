@@ -48,8 +48,8 @@ class Healer(Npc):
             (Runner, self.switch_followee_state, Unit.POST),
         ])
 
-        if "h" in self.game.ai and self.game.ai["h"] is not None:
-            self.game.ai["h"].healers.append(self)
+        if self.game.players.healer is not None:
+            self.game.players.healer.healers.append(self)
 
     def str_info(self) -> str:
         letter = self.target_state == Healer.TARGETING_RUNNER and 'R' or 'P'

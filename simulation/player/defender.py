@@ -20,6 +20,9 @@ class Defender(Player):
             (Trap, self.repair_trap, Unit.PRE),
         ])
 
+        # This array persists food even after it perishes.
+        self.food: List[Food] = []
+
     def __call__(self) -> bool:
         if self.trap is not None and self.busy_i == 0:
             self.trap.charges = 2
@@ -58,12 +61,17 @@ class Defender(Player):
         assert str(food_type) in self.inventory, "We cannot drop food we do not have."
         assert food_type < self.CALL_COUNT, "We cannot drop things that aren't food."
         for i in range(count):
-            self.game.wave.dropped_food.append(Food(
+            if str(food_type) not in self.inventory:
+                break
+
+            new_food = Food(
                 self.location,
                 food_type,
                 food_type == self.correct_call,
                 self.game
-            ))
+            )
+            self.game.wave.dropped_food.append(new_food)
+            self.food.append(new_food)
             self.inventory[self.inventory.index(str(food_type))] = Y.EMPTY
 
     def drop_select_food(self, inventory_slots: List[int]) -> None:

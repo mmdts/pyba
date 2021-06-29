@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from typing import Dict, Any, Optional
 from uuid import UUID
 
 from flask import Flask, request
@@ -27,7 +27,7 @@ active_sids: Dict[str, str] = {}  # Maps from request.sid client ids to uuid roo
 event_handler = EventHandler()
 
 
-def emit(self) -> None:
+def emit(self) -> Optional[Any]:
     # Should provide a full game state, ending on something that's Transmittable.
     rv = json.dumps({
         "game": build_emittable_object_from(self.game.inspectable),
@@ -131,7 +131,7 @@ def is_valid_uuid(uuid_to_test, version=4) -> bool:
 
 def room_create(room_id: str) -> Room:
     assert is_valid_uuid(room_id), f"Please provide a syntactically valid uuid for the room instead of {room_id}."
-    rooms[room_id] = Room(room_id, server)
+    rooms[room_id] = Room(room_id, server.sleep)
     return rooms[room_id]
 
 

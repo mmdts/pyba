@@ -1,7 +1,6 @@
 import sys
 from argparse import ArgumentParser
 
-
 PY_VER = 3.8
 
 
@@ -24,6 +23,17 @@ def main() -> None:
         except (KeyboardInterrupt, Exception) as e:
             play.stop()
             raise e
+
+    if opt.mode == "train":
+        import deep
+        import torch
+        from deep.policy import Policy
+        from deep.constants import CUDA0, CUDA1, LEARNING_RATE
+
+        torch.set_default_tensor_type('torch.FloatTensor')
+        torch.manual_seed(1625582114)
+
+        deep.train(checkpoint=opt.checkpoint, device=CUDA0)
 
 
 if __name__ == "__main__":

@@ -89,10 +89,16 @@ class Unit(Locatable):
                 continue
 
             try:
-                rv = action(*self.action_args)
+                if self.action_args is None or (len(self.action_args) == 1 and self.action_args[0] is None):
+                    rv = action()
+                else:
+                    rv = action(*self.action_args)
             except AssertionError as e:
                 rv = False
                 debug("Unit.act", f"{self} returned False due to the assertion: {str(e)}")
+            except Exception as e:
+                debug("Unit.act", f"{self} had incorrect arguments: {self.action_args} for the action {action}.")
+                raise e
 
             self.action_args = ()
             self.stop_movement()

@@ -17,7 +17,8 @@ from .runner import Runner
 # been lazy.
 class Healer(Npc):
     HITPOINTS: List[int] = [27, 32, 37, 43, 49, 55, 60, 67, 76, 60]
-    SPAWNS: List[Tuple[int, int]] = [(2, 0), (3, 0), (2, 1), (3, 1), (4, 1), (4, 2), (4, 3), (5, 2), (6, 2), (4, 3)]
+    # SPAWNS: List[Tuple[int, int]] = [(2, 0), (3, 0), (2, 1), (3, 1), (4, 1), (4, 2), (4, 3), (5, 2), (6, 2), (4, 3)]
+    SPAWNS: List[Tuple[int, int]] = [(0, 0)] * 9  # We won't spawn healers for now.
 
     RUNNER_ACTION_DISTANCE: int = 5
 

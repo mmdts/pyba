@@ -7,7 +7,8 @@ from log import debug
 if not torch.cuda.is_available():
     raise EnvironmentError("Cuda is not available!")
 
-debug("General", f"CUDA DEVICE COUNT IS {torch.cuda.device_count()}.")
+debug("General", f"CUDA device count is {torch.cuda.device_count()}. "
+                 f"constants.py has been imported, usually signalling the start of a new process.")
 CUDA0 = torch.device('cuda:0')
 CUDA1 = torch.device('cuda:1')
 
@@ -15,20 +16,26 @@ State = Optional[Dict[str, torch.Tensor]]
 
 
 # Training Parameters
+SEED: int = 1625582114
+NUM_PROCESSES: int = 3
 BATCH_SIZE: int = 1  # We don't have batches for now, just single-threaded single-actor GAE.
-ITERATION_COUNT: int = 200
+ITERATION_COUNT: int = 100
 NUM_FORWARD_STEPS_PER_TRAJECTORY: int = 50
-LEARNING_RATE: float = 0.0001  # For the optimizer (Adam, but could be RMSProp).
-DISCOUNT_FACTOR: float = 0.99  # For generalized advantage estimation.
+LEARNING_RATE: float = 5e-5  # For the optimizer (Adam, but could be RMSProp).
+DISCOUNT_FACTOR: float = 0.996  # For generalized advantage estimation.
 GAE_PARAMETER: float = 1.00  # For generalized advantage estimation.
 ENTROPY_WEIGHT: float = 0.01  # For generalized advantage estimation.
+VALUE_LOSS_WEIGHT: float = 0.5  # For loss calculation.
+MAX_GRAD_NORM: float = 40
 
 # Play Parameters
 DESTROY_PROBABILITY: float = 0.7
 
+# Log Parameters
+ITERATIONS_PER_LOG: int = 5
 
 # Model Parameters
-EXPECTED_SIZES: Dict[str, Tuple] = {
+EXPECTED_SIZES: Dict[str, Tuple[int, ...]] = {
     "trap": (2,),
     "wave": (2,),
     "tick": (2,),
@@ -43,3 +50,4 @@ EXPECTED_SIZES: Dict[str, Tuple] = {
 
 LSTM_INPUT: int = 2+2+4+65+60+63+64+64+252
 LSTM_OUTPUT: int = 512
+LSTM_HIDDEN_SIZE: Tuple[int, ...] = (1, 512)

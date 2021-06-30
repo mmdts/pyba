@@ -499,7 +499,7 @@ class InspectableWave:
 class Inspectable:
     CYCLE: int = 10  # The penance cycle
     CALL: int = 5 * CYCLE  # A call is 5 cycles
-    WAVE: int = 10 * CALL  # We force a wave to end on 10 calls to prevent an infinite loop if the players just idle.
+    WAVE: int = 5 * CALL  # We force a wave to end on 5 calls to prevent an infinite loop if the players just idle.
 
     # This class is used for accessing the game object on the __call__ function of lower classes in the hierarchy.
     # What basically happens is that every class passes the game inspectable down a level when calling

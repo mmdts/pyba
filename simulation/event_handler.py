@@ -43,7 +43,7 @@ class EventHandler:
         # args: None
         # args: slots
         "click_destroy_items": (
-            lambda args: len(args) == 1,
+            lambda args: len(args) >= 1,
             lambda args, player: args
         ),
         "click_idle": (

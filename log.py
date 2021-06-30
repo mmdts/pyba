@@ -34,6 +34,7 @@ LM = Fore.LIGHTMAGENTA_EX
 # None is used for anything Wave and above.
 ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "General": Y,
+    "deep.train": LC,
     # "Env.step": C,
 
     # "Interface.disconnect_handler": None,
@@ -57,7 +58,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Player.move": C,
     # "Player.move.pathing_queue": C,
     # "Player.single_step": C,
-    # "Unit.act": C,
+    "Unit.act": C,
     # "Unit.refollow": C,
     # "Npc.__call__": LC,
 

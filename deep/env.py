@@ -1,4 +1,3 @@
-import random
 from typing import Dict, List, Tuple
 
 import torch
@@ -34,7 +33,7 @@ DISPENSER_OPTIONS: List[int] = [0, 1, 2, 5]
 
 CYCLE_LATENESS_FACTOR = 0.2
 WAVE_LATENESS_FACTOR = 0.05
-WAVE_LATENESS_RATIO = 1.01
+WAVE_LATENESS_RATIO = 1.007
 
 END_TICKS: List[int] = [50, 70, 80, 80, 90, 100, 120, 130, 150]
 
@@ -113,9 +112,9 @@ class Env:
             if healer.hitpoints > 0 and healer.is_alive():
                 sigma_hp_healer_out += healer.hitpoints / max_hp
 
-        num_spawns = len(SUPPOSED_HEALER_SPAWN_TICKS[self.room.game.wave.number])
+        num_h_spawns = len(SUPPOSED_HEALER_SPAWN_TICKS[self.room.game.wave.number])
         num_reserves = self.room.game.wave.penance.spawns["h"][1]
-        for i in reversed(range(num_spawns - num_reserves, num_spawns)):
+        for i in reversed(range(num_h_spawns - num_reserves, num_h_spawns)):
             healer_factor = 1 + max(
                 self.room.game.wave.relative_tick -
                 SUPPOSED_HEALER_SPAWN_TICKS[self.room.game.wave.number][i], 0
@@ -123,9 +122,9 @@ class Env:
 
             sigma_hp_healer_reserve += healer_factor
 
-        num_spawns = len(SUPPOSED_RUNNER_SPAWN_TICKS[self.room.game.wave.number])
+        num_d_spawns = len(SUPPOSED_RUNNER_SPAWN_TICKS[self.room.game.wave.number])
         num_reserves = self.room.game.wave.penance.spawns["d"][1]
-        for i in reversed(range(num_spawns - num_reserves, num_spawns)):
+        for i in reversed(range(num_d_spawns - num_reserves, num_d_spawns)):
             healer_factor = 1 + max(
                 self.room.game.wave.relative_tick -
                 SUPPOSED_RUNNER_SPAWN_TICKS[self.room.game.wave.number][i], 0
@@ -141,37 +140,42 @@ class Env:
         tick_component += WAVE_LATENESS_FACTOR * WAVE_LATENESS_RATIO ** (
                 self.room.game.wave.relative_tick - END_TICKS[self.room.game.wave.number]
         )
-        return hp_component + tick_component
+        num_spawns = self.role == "d" and num_d_spawns or num_h_spawns
+        return hp_component / num_spawns + tick_component
 
     def reset(self) -> State:
-        EventHandler.handle("new_wave", [random.randint(1, 9), ""], self.room, self.role)
+        EventHandler.handle("new_wave", [torch.randint(low=1, high=10, size=(1,)).item(), ""], self.room, self.role)
         rv = self.preprocess(self.room())
         self.last_worth = self.calculate_state_worth()
         return rv
 
-    def step(self, action_prediction: Dict) -> Tuple[State, int, bool, str]:
+    def step(self, multinomial_action_prediction: Dict) -> Tuple[State, int, bool, str, int]:
         assert self.last_worth is not None, "You need to reset the environment once after initializing it."
 
-        action = ACTIONS[torch.argmax(action_prediction["action"]).detach().cpu().item()]
+        action = ACTIONS[multinomial_action_prediction["action"].cpu().item()]
         rv_action = action
         args = []
 
         # Calculate the action that gets passed to the EventHandler.
         if action == "click_move":
             args = [
-                self.player.location.x +
-                torch.argmax(action_prediction["move_x"]).detach().cpu().item() -
+                self.player.location.x + multinomial_action_prediction["move_x"].cpu().item() -
                 Player.ACTION_DISTANCE // 2,
-                self.player.location.y +
-                torch.argmax(action_prediction["move_y"]).detach().cpu().item() -
+                self.player.location.y + multinomial_action_prediction["move_y"].cpu().item() -
                 Player.ACTION_DISTANCE // 2,
             ]
 
         if action == "click_use_dispenser" and isinstance(self.player, player.Healer):
-            args = [DISPENSER_OPTIONS[torch.argmax(action_prediction["dispenser_option"]).detach().cpu().item()]]
+            args = [DISPENSER_OPTIONS[multinomial_action_prediction["dispenser_option"].cpu().item()]]
+
+        if action == "click_repair_trap" and (
+            not isinstance(self.player, player.Defender)
+            or self.room.game.wave.game_objects.trap.charges > 1
+        ):
+            action = "click_idle"
 
         if action == "click_pick_item":
-            arg = torch.argmax(action_prediction["target"]).detach().cpu().item()
+            arg = multinomial_action_prediction["target"].cpu().item()
             if not isinstance(self.player, player.Defender) or \
                     arg >= len(self.player.food) or self.player.food[arg] not in self.room.game.wave.dropped_food:
                 action = "click_idle"
@@ -179,7 +183,7 @@ class Env:
                 args = [self.player.food[arg].uuid]
 
         if action == "click_use_poison_food":
-            arg = torch.argmax(action_prediction["target"]).detach().cpu().item()
+            arg = multinomial_action_prediction["target"].cpu().item()
             if not isinstance(self.player, player.Healer) or arg >= len(self.player.healers):
                 action = "click_idle"
             else:
@@ -211,15 +215,15 @@ class Env:
         EventHandler.handle(action, args, self.room, self.role)
 
         # Handle instant actions.
-        if torch.max(action_prediction["destroy_slots"]).detach().cpu().item() > DESTROY_PROBABILITY:
-            probability_list = action_prediction["destroy_slots"].detach().cpu().tolist()
-            args = [i for i in range(len(probability_list)) if probability_list[i] > DESTROY_PROBABILITY]
+        if torch.max(multinomial_action_prediction["destroy_slots"]).cpu().item() > DESTROY_PROBABILITY:
+            probability_list = multinomial_action_prediction["destroy_slots"].cpu().tolist()[0]
+            args = [[i for i in range(len(probability_list)) if probability_list[i] > DESTROY_PROBABILITY]]
             debug("Env.step", f"Destroying items. args = {args}.")
             EventHandler.handle("click_destroy_items", args, self.room, self.role)
 
-        if torch.argmax(action_prediction["drop_count"]).detach().cpu().item() > 0 and \
+        if torch.argmax(multinomial_action_prediction["drop_count"]).cpu().item() > 0 and \
                 self.player.received_call is not None:
-            args = [self.player.received_call, torch.argmax(action_prediction["drop_count"]).detach().cpu().item()]
+            args = [self.player.received_call, multinomial_action_prediction["drop_count"].cpu().item()]
             debug("Env.step", f"Dropping food. args = {args}.")
             EventHandler.handle("click_drop_food", args, self.room, self.role)
 
@@ -235,4 +239,4 @@ class Env:
         self.last_worth = not done and new_worth or None
 
         debug("Env.step", f"{last_tick}:: " + debug_string)
-        return state, reward, done, rv_action
+        return state, reward, done, rv_action, last_tick

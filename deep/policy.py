@@ -2,8 +2,33 @@ from typing import Tuple, Dict
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 from .constants import State, BATCH_SIZE, EXPECTED_SIZES, LSTM_INPUT, LSTM_OUTPUT
+
+
+def normalized_columns_initializer(weights, std=1.0):
+    out = torch.randn(weights.size())
+    out *= std / torch.sqrt(out.pow(2).sum(1, keepdim=True))
+    return out
+
+
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        weight_shape = list(m.weight.data.size())
+        fan_in = np.prod(weight_shape[1:4])
+        fan_out = np.prod(weight_shape[2:4]) * weight_shape[0]
+        w_bound = np.sqrt(6. / (fan_in + fan_out))
+        m.weight.data.uniform_(-w_bound, w_bound)
+        m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        weight_shape = list(m.weight.data.size())
+        fan_in = weight_shape[1]
+        fan_out = weight_shape[0]
+        w_bound = np.sqrt(6. / (fan_in + fan_out))
+        m.weight.data.uniform_(-w_bound, w_bound)
+        m.bias.data.fill_(0)
 
 
 class Policy(nn.Module):
@@ -80,8 +105,7 @@ class Policy(nn.Module):
 
         # The input size should be BSx576 or BSxSx576, where S is the sequence length.
         # The output is BSx512.
-        # self.lstm = nn.LSTMCell(input_size=LSTM_INPUT, hidden_size=LSTM_OUTPUT)
-        self.lstm = nn.Linear(LSTM_INPUT, LSTM_OUTPUT)
+        self.lstm = nn.LSTMCell(input_size=LSTM_INPUT, hidden_size=LSTM_OUTPUT)
 
         # Action, count is 10 so far.
         # click_pick_hammer and click_pick_logs are new, separate actions.
@@ -146,6 +170,11 @@ class Policy(nn.Module):
 
         self.value_linear = nn.Linear(LSTM_OUTPUT, 1)
 
+        self.apply(weights_init)
+        self.value_linear.weight.data = normalized_columns_initializer(self.value_linear.weight.data, 1.0)
+        self.value_linear.bias.data.fill_(0)
+        self.train()
+
     def forward(self, state: State, lstm_inputs: Tuple) -> Tuple[Dict, torch.Tensor, Tuple]:
 
         # lstm_inputs are (hn, cn).
@@ -155,7 +184,7 @@ class Policy(nn.Module):
         # We append it to self, and forward pass everything to the point where they're ready for LSTM input.
         state["self"] = self.s_self(torch.cat((
             state["self"],
-            torch.reshape(state["inventory"], (BATCH_SIZE, 1, -1))
+            state["inventory"].view(BATCH_SIZE, 1, -1)
         ), dim=-1))
         state["players"] = self.s_players(state["players"])
         state["foods"] = self.s_foods(state["foods"])
@@ -169,8 +198,7 @@ class Policy(nn.Module):
             state["runners"],  state["healers"], state["map"]
         ), dim=1)
 
-        # hn, cn = self.lstm(x, lstm_inputs)
-        hn = self.lstm(x)
+        hn, cn = self.lstm(x, lstm_inputs)
         cn = hn
         x = hn
 

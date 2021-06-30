@@ -1,1 +1,2 @@
-from .playground import train
+from .train import train
+from .test import test

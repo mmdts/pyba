@@ -41,6 +41,7 @@ class Player(Unit):
         self.calls_with: Optional[Player] = None
         self.inventory: List[str] = [Y.HORN] + [Y.EMPTY] * (Player.INVENTORY_SPACE - 1)
         self.busy_i: int = 0
+        self.has_used_dispenser: bool = False  # For deep learning purposes.
         self.actions.extend([
             (Dispenser, self.use_dispenser, Unit.PRE),
             (DroppedItem, self.pick_item, Unit.PRE),
@@ -225,6 +226,7 @@ class Player(Unit):
         # refactor E.*_RESTOCK_SPOT variables out of the codebase.
         assert option is None or option is Dispenser.DEFAULT_STOCK or self.access_letter == "h", \
             "Only the healer can specify options when using the dispenser."
+        self.has_used_dispenser = True
 
     @abstractmethod
     def use_dispenser(self, option: Optional[int] = None) -> None:

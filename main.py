@@ -2,6 +2,8 @@ import sys
 from argparse import ArgumentParser
 from time import sleep
 
+from log import debug
+
 PY_VER = 3.8
 
 
@@ -39,7 +41,10 @@ def main() -> None:
 
         checkpoint = None
         if opt.checkpoint is not None:
-            checkpoint = torch.load(opt.checkpoint)
+            try:
+                checkpoint = torch.load(opt.checkpoint)
+            except FileNotFoundError:
+                debug("Warning", "Checkpoint file not found! Proceeding to train from the start.")
 
         shared_model = Policy().to(CUDA0)
         if checkpoint is not None:
@@ -86,6 +91,7 @@ def main() -> None:
             "model": shared_model.state_dict(),
             "optimizer": optimizer.state_dict(),
         }, "training_end.checkpoint")
+
 
 if __name__ == "__main__":
     main()

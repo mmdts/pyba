@@ -28,6 +28,12 @@ class Penance:
 
         self.total_counts: Dict[str, int] = {}
 
+        # The following 4 counters are for deep learning reward purposes.
+        self.species_extinct = 0
+        self.runner_escapes = 0
+        self.runner_random_moves = 0
+        self.healer_static_ticks = 0
+
         self.runner_movements: List[List[C]] = []
 
         # Before they initially spawn, the early spawners are also "reserves".
@@ -60,6 +66,7 @@ class Penance:
                         # Here, we want accurate statistics regardless of stall, so this message is always instant.
                         self.game.wave.print(f"All penance {npc.default_name.lower()}s have been killed "
                                              f"({Terrain.tick_to_string(self.game.wave.relative_tick)}).")
+                        self.species_extinct += 1
                         species.pop()  # Destroy the species completely.
 
                 if not npc_still_spawned:

@@ -59,6 +59,7 @@ class Runner(Npc):
             # Since Penance decrements the amount of reserve runners when spawning them,
             # we need to re-add this escaped runner back to reserves by incrementing that count.
             self.game.wave.penance.spawns["d"][1] += 1
+            self.game.wave.penance.runner_escapes += 1
             self.state = Npc.DEAD
             return
 
@@ -212,6 +213,8 @@ class Runner(Npc):
         # For example: some_newly_created_runner.forced_movements.append(D.W) will make that runner a westie.
         if len(self.forced_movements) > 0:
             return self.forced_movements.pop(0)
+
+        self.game.wave.penance.runner_random_moves += 1
 
         # Runners have a 1/6 chance for east movement, 1/6 for west movement, and 4/6 for south movement.
         # Runners do not automatically random-walk north ever.

@@ -4,7 +4,7 @@ from colorama import init, Fore, Back
 init()
 
 DEBUG: bool = True
-GAME_PRINT: bool = True
+GAME_PRINT: bool = False
 J = Fore.RESET
 K = Back.RESET
 X = Back.BLACK
@@ -34,6 +34,7 @@ LM = Fore.LIGHTMAGENTA_EX
 # None is used for anything Wave and above.
 ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "General": Y,
+    "Warning": LR,
     "deep.train": LC,
     # "Env.step": C,
 

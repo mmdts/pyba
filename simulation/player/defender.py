@@ -87,7 +87,7 @@ class Defender(Player):
             self.inventory[slot] = Y.EMPTY
 
     def repair_trap(self) -> bool:
-        assert self.followee.charges < 2, "Cannot repair a trap that's already repaired."
+        assert self.followee.charges < Trap.MAX_CHARGES, "Cannot repair a trap that's already repaired."
 
         debug("Defender.repair_trap", f"Defender successfully reached the trap and will attempt to repair it.")
 

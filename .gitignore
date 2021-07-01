@@ -3,6 +3,7 @@ __pycache__/
 
 *.env
 *.min.js
+*.checkpoint
 
 config/
 research/

@@ -101,8 +101,14 @@ class Healer(Npc):
                 self.no_follow_i -= 1
         # END
 
+        last_location = self.location.copy()
+
         self.step()
         self.act()
+
+        if self.location == last_location:
+            self.game.wave.penance.healer_static_ticks += 1
+
         debug("Healer.do_cycle", f"{self}")
 
     def switch_followee(self) -> bool:

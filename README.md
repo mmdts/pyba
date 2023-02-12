@@ -1,5 +1,20 @@
 # The mmdts Big Barbarian Assault Project
 
+### 2023-02-01 Update - The rest of the README is not up-to-date!
+
+Some interest was sparked in this project. So here's an updated status:
+
+* The project has three branches. `master`, `playground`, and `ongoing-playground-work`. The relation between them is strictly linear (each branch builds on top of the one before it). The only exception to this linearity is this commit that modifies the readme (which is present only on master so far).
+* `master` has a good known state. It exhibits some bugs that were built while `playground` and `ongoing-playground-work` were being built. It is missing a lot of new things that were introduced during the building of `playground`, but it's just some stable state iirc.
+* `playground` has all the deep-learning work that was started. It's a failed attempt at creating an RL agent that plays BA. However, a lot of bugs in the simulation itself, and some more penance monster AI improvement was made along the way.
+* `ongoing-playground-work` has my most recent folder state. I just committed it and pushed it because I don't even remember what I was doing. I don't think this will run without issues, but if you want to pick up dev work on this, start from here.
+* An unpublished branch has _fighter and ranger AIs_ that I don't think I want to put on github for the time being.
+* Commits e11d167049d32ac495eb279131a49099bdde67f1 and 9de005bafedc955b1d2b9e14d4ff0b338535a575 are what you want to look at if you want some stable project state iirc.
+* Right now, I don't have any of this running anywhere. There's a nice web-ui included, and 2~3 defender role players have tried it in secret :) I will spend 2~3 hours more on this to try to bring `ongoing-playground-work` into a playable state, and republish it on a relative's AWS account or a friend's Heroku account or something. Then I'll leave a link here.
+* If you need to contact me about this, there's an issue called chat, or you could ping me on discord. Either way, don't expect a real-time reply!
+
+---
+
 ### Project Information
 
 The license (MIT) is present in [LICENSE.txt](./LICENSE.txt).

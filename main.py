@@ -14,8 +14,6 @@ def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("--mode", default="play", choices=["train", "evaluate", "play"])
     parser.add_argument("--checkpoint", default=None, help="path to checkpoint to restore")
-    parser.add_argument("--device_ids", default="0", type=lambda x: list(map(int, x.split(','))),
-                        help="Names of the devices comma separated.")
 
     opt = parser.parse_args()
 
@@ -62,7 +60,7 @@ def main() -> None:
             counter = mp.Value('i', 0)
             lock = mp.Lock()
 
-            p = mp.Process(target=deep.test, args=(NUM_PROCESSES, shared_model, counter))
+            p = mp.Process(target=deep.test, args=(shared_model, counter))
             p.start()
             processes.append(p)
 

@@ -19,7 +19,7 @@ Hidden = Tuple[torch.Tensor, torch.Tensor]
 
 # Training Parameters
 SEED: int = 1625582114
-NUM_PROCESSES: int = 3
+NUM_PROCESSES: int = 1
 BATCH_SIZE: int = 1  # We don't have batches for now, just single-threaded single-actor GAE.
 ITERATION_COUNT: int = 4000
 NUM_FORWARD_STEPS_PER_TRAJECTORY: int = 50

@@ -119,6 +119,9 @@ class Env:
             # Lose points for every runner that's late to spawn.
             state_worth -= 2 * (wave.penance.spawns["d"][1] + wave.relative_tick // Inspectable.CYCLE)
 
+            # Lose points for when a runner random moves.
+            state_worth -= 4 * wave.penance.runner_random_moves
+
         # Gain points for being surrounded by runners/healers.
         average_of_distances = torch.zeros((1, 1), device=self.device)
         average_of_distances += E.TRAP.chebyshev_to(self.player.location)
@@ -152,9 +155,6 @@ class Env:
 
         # Gain points for when a healer is not moving.
         state_worth += wave.penance.healer_static_ticks
-
-        # Lose points for when a runner random moves.
-        state_worth -= 4 * wave.penance.runner_random_moves
 
         # Lose points exponentially for every tick after the supposed end tick.
         # Since the sole purpose of this is to finish fast.
@@ -278,6 +278,8 @@ class Env:
         reward = new_worth - self.last_worth + reward_delta
         debug_string += f"reward = {new_worth.item():.3f} - {self.last_worth.item():.3f} = {reward.item():.3f}."
         self.last_worth = not done and new_worth or None
+
+        self.room.game.render_map(_print=True)
 
         debug("Env.step", f"{last_tick}:: " + debug_string)
         return state, masks, reward, done, last_tick

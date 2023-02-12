@@ -49,7 +49,7 @@ class Healer(Npc):
             (Runner, self.switch_followee_state, Unit.POST),
         ])
 
-        if self.game.players.healer is not None:
+        if self.game.arg is not None and self.game.players.healer is not None:
             self.game.players.healer.healers.append(self)
 
     def str_info(self) -> str:

@@ -47,7 +47,8 @@ class Player(Unit):
             (DroppedItem, self.pick_item, Unit.PRE),
             # Cannon
         ])
-        Terrain.block(self.location, self.game.block_map)
+        if self.game.arg is not None:
+            Terrain.block(self.location, self.game.block_map)
 
     def __call__(self) -> bool:
         if self.busy_i > 0:  # Cannot move or do any other action when busy (repairing trap / using dispenser).

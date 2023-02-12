@@ -4,7 +4,7 @@ from colorama import init, Fore, Back
 init()
 
 DEBUG: bool = True
-GAME_PRINT: bool = False
+GAME_PRINT: bool = True
 J = Fore.RESET
 K = Back.RESET
 X = Back.BLACK
@@ -36,7 +36,7 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     "General": Y,
     "Warning": LR,
     "deep.train": LC,
-    # "Env.step": C,
+    "Env.step": C,
 
     # "Interface.disconnect_handler": None,
     # "Interface.room_connect": None,
@@ -63,10 +63,10 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
     # "Unit.refollow": C,
     # "Npc.__call__": LC,
 
-    # "Runner.do_cycle": LB,
+    "Runner.do_cycle": LB,
     # "Runner.step": LB,
-    # "Runner.tick_eat": LB,
-    # "Runner.tick_eat.verbose": LB,
+    "Runner.tick_eat": LB,
+    "Runner.tick_eat.verbose": LB,
     # "Runner.tick_target": LB,
     # "Runner.walk": LB,
 
@@ -82,12 +82,14 @@ ALLOWED_DEBUG_NAMESPACES: Dict[str, Optional[int]] = {
 
 
 ALLOWED_GAME_PRINT_NAMESPACES: Dict[str, Optional[int]] = {
-    # "Game.render_map": None,
+    "Game.render_map": None,
+    "Terrain.print": None,
+
     # "Game.print_runners": None,
+
     "Penance.print": Y,
     "Player.print": Y,
     "Wave.print": Y,
-    # "Terrain.print": None,
 }
 
 

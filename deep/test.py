@@ -1,2 +1,2 @@
-def test(*args, **kwargs):
+def test(shared_model, counter):
     pass

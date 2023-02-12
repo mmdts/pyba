@@ -37,7 +37,7 @@ class Npc(Unit):
         self.cycle: int = 0
         self.despawn_i: int = self.DESPAWN_TICKS
         self.state: int = Npc.ALIVE
-        self.hitpoints: int = self.HITPOINTS[self.game.wave.number]
+        self.hitpoints: int = self.game.arg is not None and self.HITPOINTS[self.game.wave.number] or 1
         self.is_still_static: bool = True
         self.no_random_walk_i: int = 0  # The time it would've taken to reach the destination.
 
